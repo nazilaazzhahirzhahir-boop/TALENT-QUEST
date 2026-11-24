@@ -1,0 +1,423 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Bridge Runner Challenge</title>
+<style>
+*{box-sizing:border-box;margin:0;user-select:none;-webkit-user-select:none;touch-action:none}
+html,body{height:100%;overflow:hidden;background:#0a1030;font-family:system-ui,sans-serif;color:#fff}
+canvas{display:block;position:fixed;inset:0}
+#hud{position:fixed;top:0;left:0;right:0;padding:calc(env(safe-area-inset-top,0px) + 8px) 12px 0;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;text-shadow:0 2px 4px #000a;font-weight:700;font-size:18px}
+#hud>div:nth-child(2){text-align:center}#hud>div:last-child{text-align:right}
+#time{font-size:28px}#mult{color:#ffd54f}#score{font-size:24px}
+.bt button{pointer-events:auto;width:38px;height:38px;border-radius:50%;border:0;background:#0007;color:#fff;font-size:18px;margin-left:4px;cursor:pointer}
+#sl{position:fixed;inset:0;display:none;pointer-events:none;background:repeating-conic-gradient(at 50% 50%,transparent 0 5deg,#fff4 5deg 5.6deg);-webkit-mask-image:radial-gradient(circle,transparent 30%,#000 95%);mask-image:radial-gradient(circle,transparent 30%,#000 95%)}
+#warn{position:fixed;top:22%;left:0;right:0;text-align:center;font-size:clamp(20px,5vw,40px);font-weight:900;color:#ff5252;opacity:0;pointer-events:none;text-shadow:0 0 14px #f00}
+#warn.on{opacity:1;animation:bl .5s 6}@keyframes bl{50%{opacity:.25}}
+#cd{position:fixed;inset:0;display:none;align-items:center;justify-content:center;font-size:22vmin;font-weight:900;text-shadow:0 4px 20px #000;pointer-events:none}
+.pop{position:fixed;top:42%;transform:translateX(-50%);font-size:26px;font-weight:900;text-shadow:0 2px 6px #000;animation:up 1s forwards;pointer-events:none}
+@keyframes up{to{top:26%;opacity:0}}
+.ov{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#000b;text-align:center;padding:16px}.ov.on{display:flex}
+h1{font-size:clamp(26px,6vw,44px)}p{max-width:480px;font-size:14px;line-height:1.5;opacity:.9}
+.b{padding:12px 28px;border-radius:30px;border:0;background:#ffb300;color:#222;font-size:20px;font-weight:800;cursor:pointer}
+.c{padding:8px 12px;border-radius:12px;border:2px solid #fff4;background:#fff1;color:#fff;font-size:14px;cursor:pointer}.c.s{border-color:#ffb300;background:#ffb30033}
+.c i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px}
+#hud{z-index:5}.ov{z-index:4}input,select{padding:12px;border-radius:14px;border:2px solid #ffb300;font-size:18px;width:min(320px,90vw);background:#fff;color:#222;user-select:text;-webkit-user-select:text;touch-action:auto}
+h1{background:linear-gradient(90deg,#ffd54f,#ff8a65,#4fc3f7);-webkit-background-clip:text;background-clip:text;color:transparent}.g{background:#4fc3f7}
+#menu{background:radial-gradient(circle at 50% 40%,#0000 25%,#0007)}
+#adv{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);left:50%;transform:translateX(-50%);width:min(420px,92vw);padding:8px 12px;border-radius:16px;background:#0008;font-weight:700;font-size:14px;z-index:3;pointer-events:none;display:none}
+#pb{height:10px;border-radius:6px;background:#fff3;margin:6px 0;overflow:hidden}#pb i{display:block;height:100%;width:0;background:linear-gradient(90deg,#4caf50,#ffd54f);transition:width .4s}
+.qb{display:block;width:min(440px,88vw);margin:8px auto;font-size:18px;background:#fff}#qt{font-size:clamp(20px,4.5vw,28px);max-width:560px}
+#prof{justify-content:flex-start;align-items:stretch;overflow:auto;background:#101a33;text-align:left}#prof,#prof *{touch-action:pan-y;user-select:text;-webkit-user-select:text}.pw{width:min(680px,100%);margin:0 auto;padding:8px}
+.sec{background:#fff1;border-radius:14px;padding:12px 14px;margin:10px 0}.sec h3{margin-bottom:6px}.pbx{height:10px;border-radius:6px;background:#fff3;margin:4px 0 8px}.pbx i{display:block;height:100%;background:#ffd54f;border-radius:6px}.tag{display:inline-block;background:#ffb30033;border:1px solid #ffb300;border-radius:20px;padding:3px 10px;margin:3px;font-size:14px}
+@media print{body>*:not(#prof){display:none!important}#prof{display:block!important;position:static;background:#fff}#prof,#prof *{color:#000!important;background-clip:border-box}#prof .np{display:none!important}h1{-webkit-text-fill-color:#000}}#alr{position:fixed;inset:0;pointer-events:none;display:none;box-shadow:inset 0 0 120px 40px rgba(255,0,0,.55);animation:ab .45s infinite alternate}#alr b{position:absolute;top:30%;left:0;right:0;text-align:center;font-size:clamp(20px,5vw,38px);color:#fff;background:#d50000cc;padding:8px;text-shadow:0 2px 6px #000}@keyframes ab{to{opacity:.35}}
+</style></head><body>
+<div id="hud"><div><div id="hearts"></div><div id="pws"></div></div><div><div id="time">00:00</div><div id="mult"></div></div><div><div id="score">0</div><div class="bt"><button id="bp">⏸</button><button id="br">🔄</button><button id="bm">🔊</button></div></div></div>
+<div id="sl"></div><div id="alr"></div><div id="warn"></div><div id="cd"></div>
+<div class="ov on" id="menu"><h1>🌉 Bridge Runner Challenge</h1><div id="cos" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"></div>
+<p>⬅️➡️ / A D pindah jalur · ⬆️ / W / Spasi lompat · ⬇️ / S meluncur<br>Sentuh: geser kiri, kanan, atas (lompat), bawah (meluncur)<br>🛡️ Perisai · 🧲 Magnet · ⚡ Turbo 2x · 💖 Nyawa. Bertahan sampai 02:00 untuk Mode Kecepatan Tinggi!<br>👮 Polisi mengejar si maling. Tiap tabrakan bikin mereka makin dekat!</p>
+<div id="best1" style="font-weight:700"></div><button class="b" id="go">🏃 Mulai Lari</button></div>
+<div class="ov" id="pause"><h1>⏸ Jeda</h1><button class="b" id="rs">▶ Lanjut</button></div>
+<div class="ov" id="over"><h1>💥 Game Over</h1><div id="res" style="font-size:20px;line-height:1.7"></div><button class="b" id="again">🔄 Main Lagi</button></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $=i=>document.getElementById(i),ld=(k,d)=>{try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}},sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+let bestS=ld('brS',0),bestT=ld('brT',0),costume=ld('brC',0),muted=ld('brM',false);
+const fm=s=>String(s/60|0).padStart(2,'0')+':'+String(s%60|0).padStart(2,'0'),lp=(a,b,u)=>a+(b-a)*u,rnd=Math.random;
+// ---------- audio ----------
+let AC;function au(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume()}
+function tn(f,d,ty='square',v=.07,f2){if(muted||!AC)return;const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type=ty;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d)}
+function ns(d,v=.1,fr=800){if(muted||!AC)return;const n=AC.sampleRate*d|0,b=AC.createBuffer(1,n,AC.sampleRate),a=b.getChannelData(0);for(let i=0;i<n;i++)a[i]=(rnd()*2-1)*(1-i/n);const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();s.buffer=b;f.frequency.value=fr;g.gain.value=v;s.connect(f);f.connect(g);g.connect(AC.destination);s.start()}
+const snd={step:()=>ns(.05,.07,300),jump:()=>tn(300,.2,'square',.06,750),slide:()=>ns(.28,.1,1600),coin:c=>tn(600+Math.min(c,16)*45,.12,'triangle',.1),
+pw:()=>[523,659,784,1047].forEach((f,i)=>setTimeout(()=>tn(f,.12,'triangle',.09),i*70)),hit:()=>{ns(.4,.25,500);tn(130,.3,'sawtooth',.14,40)},
+alarm:()=>[880,660,880,660,880].forEach((f,i)=>setTimeout(()=>tn(f,.18,'sawtooth',.1),i*200)),tick:g=>tn(g?900:500,.15,'sine',.1)};
+// ---------- scene ----------
+const R=new THREE.WebGLRenderer({antialias:true});R.setPixelRatio(Math.min(devicePixelRatio,2));document.body.prepend(R.domElement);
+const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(65,1,.1,600);sc.background=new THREE.Color(0x87ceeb);sc.fog=new THREE.Fog(0x87ceeb,30,260);
+function rs(){R.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()}addEventListener('resize',rs);rs();
+const hemi=new THREE.HemisphereLight(0xffffff,0x446688,1),sun=new THREE.DirectionalLight(0xffffff,.9);sun.position.set(-5,10,5);sc.add(hemi,sun);
+const mat=(c,o={})=>new THREE.MeshLambertMaterial(Object.assign({color:c},o)),mesh=(g,m,x=0,y=0,z=0)=>{const q=new THREE.Mesh(g,m);q.position.set(x,y,z);return q};
+const mc={},Mt=(c,o)=>o?mat(c,o):(mc[c]||(mc[c]=mat(c))),Sp=(r,mt,x=0,y=0,z=0,a=1,b=1,c=1)=>{const o=mesh(new THREE.SphereGeometry(r,12,9),mt,x,y,z);o.scale.set(a,b,c);return o},Cyl=(rt,rb,h,mt,x=0,y=0,z=0)=>mesh(new THREE.CylinderGeometry(rt,rb,h,10),mt,x,y,z),Con=(r,h,mt,x=0,y=0,z=0,s=10)=>mesh(new THREE.ConeGeometry(r,h,s),mt,x,y,z),Box=(w,h,d,mt,x=0,y=0,z=0)=>mesh(new THREE.BoxGeometry(w,h,d),mt,x,y,z),Grp=(...a)=>{const g=new THREE.Group();a.forEach(o=>g.add(o));return g},bas=(c,o)=>new THREE.MeshBasicMaterial(Object.assign({color:c},o)),emi=(c,i=1)=>mat(c,{emissive:c,emissiveIntensity:i});
+const planks=[],pg=new THREE.BoxGeometry(7.2,.3,.9),pm=[mat(0x8b5a2b),mat(0x7a4d24)];
+for(let i=0;i<64;i++){const m=mesh(pg,pm[i%2],0,0,6-i);sc.add(m);planks.push(m)}
+sc.add(mesh(new THREE.BoxGeometry(7.2,.3,320),mat(0x6e4420),0,0,-217.5));
+for(const s of[-3.5,3.5])for(const y of[1,.5])sc.add(mesh(new THREE.BoxGeometry(.15,.15,400),mat(0x5a3a1a),s,y,-150));
+const lm=mat(0xffd9a0,{emissive:0xffaa33,emissiveIntensity:.2}),posts=[];
+for(let i=0;i<9;i++)for(const s of[-3.5,3.5]){const g=new THREE.Group();g.add(mesh(new THREE.BoxGeometry(.2,1.6,.2),mat(0x4a2f15),0,.8,0),mesh(new THREE.SphereGeometry(.22,10,8),lm,0,1.8,0));g.position.set(s,0,6-i*8);sc.add(g);posts.push(g)}
+const water=mesh(new THREE.PlaneGeometry(1500,1500).rotateX(-Math.PI/2),mat(0x2a8fc0),0,-5,-200);sc.add(water);
+const mm=mat(0x5d7188),snm=mat(0xf2f6fa),MT=new THREE.Group();sc.add(MT);
+for(let i=0;i<14;i++){const h=60+rnd()*60,r=h*.8,x=-300+i*46+rnd()*20,z=-230-rnd()*60;MT.add(mesh(new THREE.ConeGeometry(r,h,6),mm,x,h/2-5,z),mesh(new THREE.ConeGeometry(r*.3,h*.3,6),snm,x,h*.85-5,z))}
+const cm=new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x888888,emissiveIntensity:.5}),clouds=[];
+for(let i=0;i<9;i++){const g=new THREE.Group();for(let j=0;j<4;j++){const s=mesh(new THREE.SphereGeometry(5+rnd()*4,8,6),cm,j*7-10,rnd()*3,rnd()*4);s.scale.y=.6;g.add(s)}g.position.set(-180+i*45,35+rnd()*20,-120-rnd()*80);sc.add(g);clouds.push(g)}
+const sp=[];for(let i=0;i<300;i++){const a=rnd()*6.28,e=.15+rnd()*1.05;sp.push(Math.cos(a)*Math.cos(e)*400,Math.sin(e)*400,Math.sin(a)*Math.cos(e)*400)}
+const stars=new THREE.Points(new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(sp,3)),new THREE.PointsMaterial({color:0xffffff,size:2,sizeAttenuation:false,transparent:true,opacity:0,fog:false}));sc.add(stars);
+const fb=[],fz=[];for(let i=0;i<70;i++){fb.push([(rnd()-.5)*16,.6+rnd()*3.5,4-rnd()*50,rnd()*6.28]);fz.push(0,0,0)}
+const fat=new THREE.Float32BufferAttribute(fz,3),fg=new THREE.BufferGeometry().setAttribute('position',fat),ff=new THREE.Points(fg,new THREE.PointsMaterial({color:0xd8ff5a,size:.3,transparent:true,opacity:0}));sc.add(ff);
+const K=[{s:0x87ceeb,h:1,d:.9,l:0xffffff,w:0x2a8fc0},{s:0xff8a50,h:.7,d:.7,l:0xffb070,w:0xb0604a},{s:0x070d2a,h:.3,d:.3,l:0x7080ff,w:0x0a1840}],c1=new THREE.Color(),c2=new THREE.Color();
+function sky(f,t){const a=f<.55?0:1,u=f<.55?f/.55:(f-.55)/.45,A=K[a],B=K[a+1];c1.set(A.s).lerp(c2.set(B.s),u);sc.background.copy(c1);sc.fog.color.copy(c1);hemi.intensity=lp(A.h,B.h,u);sun.intensity=lp(A.d,B.d,u);sun.color.set(A.l).lerp(c2.set(B.l),u);water.material.color.set(A.w).lerp(c2.set(B.w),u);
+const nf=f<.55?0:u;lm.emissiveIntensity=.2+nf*2;cm.emissiveIntensity=lp(.5,.05,f);stars.material.opacity=Math.max(0,(f-.6)/.4);ff.material.opacity=Math.min(1,Math.max(0,(t-100)/10))}
+// ---------- player ----------
+const CO=[{n:'Maling Klasik',shirt:0xf2f2f2,stripe:0x111111,pants:0x222222,cap:0x111111},{n:'Maling Biru',shirt:0xeeeeee,stripe:0x1565c0,pants:0x0d1b3a,cap:0x1565c0},{n:'Maling Emas',shirt:0xffe082,stripe:0x222222,pants:0x4a3a00,cap:0xffc107}];
+let pl,parts;const bub=mesh(new THREE.SphereGeometry(1.3,16,12),new THREE.MeshBasicMaterial({color:0x40e0ff,transparent:true,opacity:.28}),0,1,0);bub.visible=false;sc.add(bub);
+function build(){if(pl)sc.remove(pl);const c=CO[costume],g=new THREE.Group(),B=(w,h,d,col,x,y,z,p=g)=>{const m=mesh(new THREE.BoxGeometry(w,h,d),mat(col),x,y,z);p.add(m);return m},
+lim=(x,y,w,h,col)=>{const p=new THREE.Group();p.position.set(x,y,0);B(w,h,w,col,0,-h/2,0,p);g.add(p);return p};
+B(.55,.7,.32,c.shirt,0,1.05,0);for(let k=0;k<4;k++)B(.57,.07,.34,c.stripe,0,.82+k*.17,0);B(.4,.4,.4,0xf1c7a0,0,1.6,0);B(.42,.11,.42,0x111111,0,1.64,0);B(.44,.17,.44,c.cap,0,1.83,0);
+B(.42,.55,.28,0x8b6b3a,0,1,.3);B(.3,.14,.24,0x6b4f2a,0,1.36,.3);
+parts=[lim(-.4,1.35,.18,.65,c.shirt),lim(.4,1.35,.18,.65,c.shirt),lim(-.15,.7,.22,.7,c.pants),lim(.15,.7,.22,.7,c.pants)];pl=g;sc.add(g)}
+// ---------- items / obstacles ----------
+const OG={block:new THREE.BoxGeometry(1.6,1,1),rock:new THREE.DodecahedronGeometry(.7),hole:new THREE.BoxGeometry(1.9,.05,2.6)},OM={block:mat(0xa0642a),rock:mat(0x777b80),hole:new THREE.MeshBasicMaterial({color:0x03060c})},OY={block:.65,rock:.6,hole:.18,bar:0},
+heartS=new THREE.Shape();heartS.moveTo(0,-.4);heartS.bezierCurveTo(-.7,.1,-.4,.6,0,.3);heartS.bezierCurveTo(.4,.6,.7,.1,0,-.4);
+const IG={coin:new THREE.CylinderGeometry(.35,.35,.08,16).rotateX(Math.PI/2),shield:new THREE.IcosahedronGeometry(.45),magnet:new THREE.TorusGeometry(.3,.1,8,16),turbo:new THREE.OctahedronGeometry(.5),heart:new THREE.ExtrudeGeometry(heartS,{depth:.2,bevelEnabled:false}).center()},
+IC={coin:0xffd700,shield:0x40e0ff,magnet:0xff3b3b,turbo:0xffe600,heart:0xff2d6f},IM={};for(const k in IC)IM[k]=mat(IC[k],{emissive:IC[k],emissiveIntensity:.45});
+function mkBar(){const g=new THREE.Group(),m=mat(0xd32f2f);g.add(mesh(new THREE.BoxGeometry(6.4,.3,.3),m,0,1.55,0),mesh(new THREE.BoxGeometry(.25,1.7,.25),m,-3.1,.85,0),mesh(new THREE.BoxGeometry(.25,1.7,.25),m,3.1,.85,0));return g}
+let obs=[],its=[];
+function addO(type,x,z){const m=type==='bar'?mkBar():mesh(OG[type],OM[type]);m.position.set(x,OY[type],z);sc.add(m);obs.push({m,type,x,hw:type==='bar'?3.3:type==='hole'?1:.85,d:type==='hole'?2.6:type==='bar'?.4:1,nm:false})}
+function addI(type,x,z){const m=mesh(IG[type],IM[type],x,type==='coin'?1:1.1,z);if(type==='heart')m.scale.setScalar(1.2);sc.add(m);its.push({m,type,x})}
+const P=[],pg2=new THREE.BoxGeometry(.14,.14,.14);for(let i=0;i<150;i++){const m=mesh(pg2,new THREE.MeshBasicMaterial());m.visible=false;sc.add(m);P.push({m,v:new THREE.Vector3(),l:0})}
+function burst(p,c,n){let k=0;for(const q of P)if(q.l<=0&&k<n){k++;q.l=.8;q.m.visible=true;q.m.position.copy(p);q.m.material.color.set(c);q.v.set((rnd()-.5)*7,rnd()*6,(rnd()-.5)*7)}}
+// ---------- state ----------
+let st='menu',t=0,T=0,score=0,lives=5,lane=0,px=0,py=0,vy=0,slide=0,inv=0,combo=0,comboT=0,shake=0,spT=1,speed=0,warned=false,stepT=0,ph=0,cd=3,lastN=0,hudT=0,pw={shield:0,magnet:0,turbo:0};
+const mult=()=>Math.min(5,1+(combo/6|0)),turbo=()=>pw.turbo>0;
+function pop(tx,c='#fff'){const d=document.createElement('div');d.className='pop';d.textContent=tx;d.style.color=c;d.style.left=40+rnd()*20+'%';document.body.appendChild(d);setTimeout(()=>d.remove(),1000)}
+function warn(tx){const w=$('warn');w.textContent=tx;w.classList.add('on');setTimeout(()=>w.classList.remove('on'),3100)}
+function reset(){alT=0;for(const o of obs)sc.remove(o.m);for(const i of its)sc.remove(i.m);obs=[];its=[];t=0;score=0;lives=5;lane=0;px=0;py=0;vy=0;slide=0;inv=0;combo=0;comboT=0;shake=0;spT=1;speed=0;warned=false;pw={shield:0,magnet:0,turbo:0};for(const q of P){q.l=0;q.m.visible=false}}
+function show(id,on){$(id).classList.toggle('on',on)}
+function start(){au();stopMusic();advReset();reset();['menu','pause','over'].forEach(i=>show(i,false));st='count';cd=3;lastN=0;$('cd').style.display='flex'}
+function over(){st='over';stopMusic();snd.over();const s=score|0;let nr='';if(s>bestS){bestS=s;sv('brS',s);nr=' 🏆 Rekor baru!'}if(t>bestT){bestT=t;sv('brT',t)}
+$('res').innerHTML=`🚓 Tertangkap polisi!<br>Waktu bertahan: <b>${fm(t)}</b><br>Skor akhir: <b>${s}</b>${nr}<br>Rekor terbaik: ${bestS} · ${fm(bestT)}`;show('over',true)}
+function pause(){if(st==='play'){st='pause';show('pause',true)}else if(st==='pause'){st='play';show('pause',false)}}
+function mv(d){if(st!=='play')return;lane=Math.max(-1,Math.min(1,lane+d));tn(250,.08,'sine',.05,350)}
+function jump(){if(st==='menu')return;if(st!=='play')return;if(py<=.01){vy=13.5;slide=0;snd.jump()}}
+function dn(){if(st!=='play')return;slide=.75;if(py>.01)vy=-20;snd.slide()}
+addEventListener('keydown',e=>{if(/INPUT|SELECT/.test(e.target.tagName))return;const k=e.code;if(k==='ArrowLeft'||k==='KeyA')mv(-1);else if(k==='ArrowRight'||k==='KeyD')mv(1);else if(k==='ArrowUp'||k==='KeyW'||k==='Space'){e.preventDefault();jump()}else if(k==='ArrowDown'||k==='KeyS')dn();else if(k==='KeyP'||k==='Escape')pause()});
+let tx0,ty0;R.domElement.addEventListener('touchstart',e=>{tx0=e.touches[0].clientX;ty0=e.touches[0].clientY},{passive:true});
+R.domElement.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx0,dy=e.changedTouches[0].clientY-ty0;if(Math.max(Math.abs(dx),Math.abs(dy))<20){jump();return}if(Math.abs(dx)>Math.abs(dy))mv(dx>0?1:-1);else if(dy<0)jump();else dn()},{passive:true});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&st==='play')pause()});
+$('go').onclick=start;$('again').onclick=start;$('br').onclick=()=>{if(st!=='menu')start()};$('bp').onclick=pause;$('rs').onclick=pause;
+$('bm').onclick=()=>{au();muted=!muted;sv('brM',muted);$('bm').textContent=muted?'🔇':'🔊'};$('bm').textContent=muted?'🔇':'🔊';
+function menuUI(){$('cos').innerHTML='';CO.forEach((c,i)=>{const b=document.createElement('button');b.className='c'+(i===costume?' s':'');b.innerHTML=`<i style="background:#${c.shirt.toString(16).padStart(6,'0')}"></i>${c.n}`;b.onclick=()=>{costume=i;sv('brC',i);build();menuUI()};$('cos').appendChild(b)});$('best1').textContent=`🏆 Skor terbaik: ${bestS} · Waktu terbaik: ${fm(bestT)}`}
+// ---------- gameplay ----------
+function spawn(){const Z=-110,ls=[-1,0,1].sort(()=>rnd()-.5);let free=ls;
+if(rnd()<.16){addO('bar',0,Z);free=ls}else{const n=rnd()<Math.min(.6,.15+t/240)?2:1,ty=['block','rock','hole'];for(let i=0;i<n;i++)addO(ty[rnd()*3|0],ls[i]*2,Z);free=ls.slice(n)}if(rnd()<Math.min(.3,t/300))addO(['block','rock','hole'][rnd()*3|0],ls[rnd()*3|0]*2,Z-10);
+if(rnd()<.75){const l=free[0];for(let i=0;i<5;i++)addI('coin',l*2,Z-2-i*1.8)}
+if(rnd()<.1){const k=['shield','magnet','turbo'][rnd()*3|0];addI(k,free[free.length-1]*2,Z-14)}else if(rnd()<.04)addI('heart',free[0]*2,Z-14)}
+function hurt(o){const p=pl.position.clone();p.y+=1;
+if(turbo()||pw.shield>0){burst(o.m.position.clone().setY(.8),0x40e0ff,25);snd.hit();sc.remove(o.m);o.dead=true;return}
+if(inv>0)return;lives--;inv=2;shake=.5;combo=0;copKick=1.1;warnRed('ROBOT PENJAGA SEMAKIN DEKAT!');burst(p,0xff4040,35);snd.hit();if(lives<=0)over()}
+function got(it){const ty=it.type;if(ty==='quest'){burst(it.m.position,0xb36bff,20);openQ();return}burst(it.m.position,IC[ty],12);
+if(ty==='coin'){combo++;comboT=2.5;score+=10*mult()*(turbo()?2:1);snd.coin(combo)}
+else if(ty==='heart'){if(lives<5){lives++;pop('+1 ❤️','#ff6b9d')}else{score+=200;pop('+200 BONUS','#ff6b9d')}snd.pw()}
+else{pw[ty]=ty==='turbo'?5:8;pop({shield:'🛡️ PERISAI!',magnet:'🧲 MAGNET!',turbo:'⚡ TURBO 2x!'}[ty],'#fff');snd.pw()}}
+function upd(dt){t+=dt;const hs=t>=120;if(hs&&!warned){warned=true;warn('⚡ MODE KECEPATAN TINGGI! ⚡');snd.alarm()}
+const tgt=(13+Math.min(t,240)*.03)*(hs?1.15:1)*(turbo()?1.45:1);speed+=(tgt-speed)*Math.min(1,dt*3);const d=speed*dt;
+for(const k in pw)pw[k]=Math.max(0,pw[k]-dt);inv=Math.max(0,inv-dt);slide=Math.max(0,slide-dt);comboT-=dt;if(comboT<=0)combo=0;
+px+=(lane*2-px)*Math.min(1,dt*12);if(py>0||vy>0){vy-=38*dt;py+=vy*dt;if(py<=0){py=0;vy=0}}
+score+=d*.4*(turbo()?2:1);
+spT-=dt;if(spT<=0){spawn();spT=Math.max(1.3-t*.003,.85)*(hs?.95:1)}
+scroll(d);for(const q of P)if(q.l>0){q.l-=dt;q.m.position.z+=d;q.m.position.addScaledVector(q.v,dt);q.v.y-=12*dt;if(q.l<=0)q.m.visible=false}
+for(const o of obs){if(o.dead)continue;const z=o.m.position.z+=d,dz=Math.abs(z),dx=Math.abs(o.x-px);
+if(dz<o.d/2+.3&&dx<o.hw+.25){const ht=o.type==='block'?py<1:o.type==='rock'?py<.85:o.type==='hole'?py<.25:!(slide>0&&py<.3);if(ht)hurt(o);if(st==='over')return}
+if(!o.dead&&!o.nm&&z>.8){o.nm=true;if(dx<o.hw+.3){const cl={block:1.7,rock:1.6}[o.type];if(cl?py<cl:(o.type==='hole'?py>0:slide>0)){score+=50*(turbo()?2:1);pop('NYARIS! +50','#ffeb3b')}}}}
+obs=obs.filter(o=>{if(o.dead)return false;if(o.m.position.z>8){sc.remove(o.m);return false}return true});
+for(const i of its){const m=i.m;m.position.z+=d;m.rotation.y+=dt*3;
+if(pw.magnet>0&&i.type==='coin'&&m.position.z>-14&&m.position.z<2){m.position.x+=(px-m.position.x)*Math.min(1,dt*8);m.position.z+=(0-m.position.z)*Math.min(1,dt*4);m.position.y+=(1-m.position.y)*Math.min(1,dt*5)}
+if(Math.abs(m.position.z)<.9&&Math.abs(m.position.x-px)<1.1){got(i);i.dead=true}}
+its=its.filter(i=>{if(i.dead||i.m.position.z>8){sc.remove(i.m);return false}return true});
+stepT-=dt;if(stepT<=0&&py===0){snd.step();stepT=.27}
+hudT-=dt;if(hudT<=0){hudT=.08;hud()}}
+function hud(){$('hearts').textContent='❤️'.repeat(Math.max(0,lives))+'🖤'.repeat(Math.max(0,5-lives));$('time').textContent=fm(t);$('score').textContent=score|0;
+$('mult').textContent=combo>1?`x${mult()} · combo ${combo}`:'';$('pws').textContent=(pw.shield>0?`🛡️${Math.ceil(pw.shield)}s `:'')+(pw.magnet>0?`🧲${Math.ceil(pw.magnet)}s `:'')+(turbo()?`⚡${Math.ceil(pw.turbo)}s`:'');$('sl').style.display=turbo()?'block':'none'}
+function scroll(d){if(thi>=0)for(const c of TG[thi].children){c.position.z+=d;if(c.position.z>10)c.position.z-=250}for(const p of planks){p.position.z+=d;if(p.position.z>6)p.position.z-=64}for(const p of posts){p.position.z+=d;if(p.position.z>8)p.position.z-=72}}
+// ---------- latar setelah 3 menit: kota, desa, angkasa, hutan, laut, pantai (tiap 30 detik) ----------
+const TH=[{n:'🏙️ KOTA',s:0x8fb8e8,w:0x3a3f4a,h:1,d:.9,st:0},{n:'🏡 DESA',s:0xa8dcf0,w:0x6aa84f,h:1,d:.9,st:0},{n:'🚀 ANGKASA',s:0x03020f,w:0x0a0618,h:.5,d:.5,st:1},{n:'🌲 HUTAN',s:0x9cc9a0,w:0x2e5d34,h:.9,d:.8,st:0},{n:'🌊 LAUT',s:0x5ab0e0,w:0x0b4f8a,h:1,d:.9,st:0},{n:'🏖️ PANTAI',s:0x8fdcf5,w:0x24c3c8,h:1,d:1,st:0}];
+const TG=TH.map(()=>{const g=new THREE.Group();g.visible=false;sc.add(g);return g}),thc=new THREE.Color(),wtc=new THREE.Color();let thi=-1,thOn=false;
+function put(g,o,a,b,y){o.position.set((rnd()<.5?-1:1)*(a+rnd()*(b-a)),y,8-rnd()*240);g.add(o)}
+function tree(g,a,b,s,col){const q=new THREE.Group();q.add(mesh(new THREE.CylinderGeometry(.3*s,.4*s,2*s,6),mat(0x5a3a1a),0,s,0),mesh(new THREE.ConeGeometry(1.8*s,4*s,7),mat(col),0,4*s,0),mesh(new THREE.ConeGeometry(1.4*s,3*s,7),mat(col),0,5.5*s,0));put(g,q,a,b,-5)}
+function palm(){const q=new THREE.Group();q.add(mesh(new THREE.CylinderGeometry(.2,.35,5,6),mat(0x7a5530),0,2.5,0),mesh(new THREE.SphereGeometry(2,8,6),mat(0x2f9e44),0,5.2,0));q.children[1].scale.set(1.6,.3,1.6);return q}
+for(let i=0;i<28;i++){const h=8+rnd()*45,w=5+rnd()*5;put(TG[0],mesh(new THREE.BoxGeometry(w,h,w),mat([0x5c6b80,0x6f7f95,0x44505f][i%3],{emissive:0x334466,emissiveIntensity:.5})),12,70,-5+h/2)}
+for(let i=0;i<16;i++){const h=new THREE.Group();h.add(mesh(new THREE.BoxGeometry(4,2.5,4),mat(0xf0e2c0),0,1.25,0),mesh(new THREE.ConeGeometry(3.6,2,4),mat(0xb5442e),0,3.5,0));h.children[1].rotation.y=Math.PI/4;put(TG[1],h,10,60,-5)}
+for(let i=0;i<14;i++)tree(TG[1],8,60,1,0x3f8f3a);
+const pcs=[0xe07b39,0x4fa3e0,0xc9b27c,0x9b6bd1,0xd9534f];
+for(let i=0;i<9;i++){const r=4+rnd()*9,p=mesh(new THREE.SphereGeometry(r,16,12),mat(pcs[i%5],{emissive:pcs[i%5],emissiveIntensity:.25}));if(i%3===0){const rg=mesh(new THREE.TorusGeometry(r*1.6,.35,6,32),mat(0xddccaa));rg.rotation.x=1.3;p.add(rg)}put(TG[2],p,25,110,5+rnd()*45)}
+for(let i=0;i<25;i++)put(TG[2],mesh(new THREE.DodecahedronGeometry(.8+rnd()*1.7),mat(0x8a8a92)),8,40,-2+rnd()*14);
+for(let i=0;i<70;i++)tree(TG[3],6,60,1.2+rnd()*.8,rnd()<.5?0x1f5a2a:0x2d7a38);
+for(let i=0;i<12;i++){const b=new THREE.Group();b.add(mesh(new THREE.BoxGeometry(3,.7,1.2),mat(0x7a4a22),0,.35,0),mesh(new THREE.BoxGeometry(.12,3.4,.12),mat(0x444444),0,2,0),mesh(new THREE.BoxGeometry(.08,2.6,1.8),mat(0xffffff),0,2.4,0));put(TG[4],b,10,70,-5)}
+for(let i=0;i<8;i++){const r=mesh(new THREE.DodecahedronGeometry(3+rnd()*4),mat(0x6b6f75));r.scale.y=1.5;put(TG[4],r,20,90,-4)}
+for(let i=0;i<10;i++){const g=new THREE.Group(),r=8+rnd()*6;g.add(mesh(new THREE.CylinderGeometry(r,r,.7,20),mat(0xf0d9a0),0,.2,0));for(let j=0;j<2;j++){const p=palm();p.position.set((rnd()-.5)*r,.4,(rnd()-.5)*r);g.add(p)}put(TG[5],g,10,60,-5)}
+function theme(dt){const on=((t/60|0)%7)>0;MT.visible=!on;if(!on){if(thi>=0&&t>1)warn('🌄 PEGUNUNGAN');thOn=false;thi=-1;for(const g of TG)g.visible=false;return}
+const i=((t/60|0)%7)-1,Th=TH[i];if(!thOn){thOn=true;thc.copy(sc.background);wtc.copy(water.material.color)}
+if(i!==thi){thi=i;TG.forEach((g,k)=>g.visible=k===i);warn((t>=120&&t<121?'⚡ KECEPATAN TINGGI! — ':'')+Th.n);snd.pw()}
+const u=Math.min(1,dt*1.5);thc.lerp(c2.set(Th.s),u);wtc.lerp(c2.set(Th.w),u);sc.background.copy(thc);sc.fog.color.copy(thc);water.material.color.copy(wtc);hemi.intensity=lp(hemi.intensity,Th.h,u);sun.intensity=lp(sun.intensity,Th.d,u);sun.color.lerp(c2.set(0xffffff),u);stars.material.opacity=Th.st;ff.material.opacity=0;cm.emissiveIntensity=.5;lm.emissiveIntensity=i===2?2:.8}
+// ---------- polisi pengejar ----------
+function mkCop(){const g=new THREE.Group(),B=(w,h,d,col,x,y,z,p=g)=>{const m=mesh(new THREE.BoxGeometry(w,h,d),mat(col),x,y,z);p.add(m);return m},lim=(x,y,w,h,col)=>{const p=new THREE.Group();p.position.set(x,y,0);B(w,h,w,col,0,-h/2,0,p);g.add(p);return p};
+B(.6,.72,.34,0x1d3a8a,0,1.05,0);B(.12,.12,.04,0xffd700,.15,1.2,-.18);B(.4,.4,.4,0xf1c7a0,0,1.6,0);B(.46,.16,.46,0x0f1f4d,0,1.84,0);B(.46,.05,.3,0x0f1f4d,0,1.78,-.3);
+const lt=B(.14,.1,.14,0xff0000,0,1.97,0);lt.material=new THREE.MeshBasicMaterial({color:0xff0000});
+const pr=[lim(-.42,1.38,.2,.65,0x1d3a8a),lim(.42,1.38,.2,.65,0x1d3a8a),lim(-.16,.7,.24,.7,0x14213d),lim(.16,.7,.24,.7,0x14213d)];g.visible=false;sc.add(g);return{g,pr,lt}}
+const cops=[mkCop()],cx=[0];let copZ=2.4,copKick=0,sirenT=0;
+function updCops(dt){const vis=st!=='menu';let cz=2.4-(5-Math.max(lives,0))*.2+(turbo()?1.2:0)+(st==='count'?.6:0)-copKick;if(st==='over')cz=.9;copKick=Math.max(0,copKick-dt*.5);copZ+=(cz-copZ)*Math.min(1,dt*4);
+cops.forEach((c,i)=>{c.g.visible=vis;const tx=Math.max(-3.2,Math.min(3.2,px)),run=st==='over'?0:1,s=Math.sin(ph*1.05+i);cx[i]+=(tx-cx[i])*Math.min(1,dt*4);c.g.position.set(cx[i],.15+Math.abs(s)*.08*run,copZ+i*.6);c.pr[0].rotation.x=-s*.9*run;c.pr[1].rotation.x=s*.9*run;c.pr[2].rotation.x=s*.9*run;c.pr[3].rotation.x=-s*.9*run;c.lt.material.color.set(Math.sin(T*14+i*3)>0?0xff2020:0x2060ff)});
+if(st==='play'){sirenT-=dt;if(sirenT<=0){sirenT=1.2;tn(700,.5,'sine',.025,950)}}}
+// ========== V2: karakter chibi + latar bertema ==========
+function build(){if(pl)sc.remove(pl);const c=CO[costume],sk=Mt(0xf5c9a0),g=new THREE.Group(),
+lim=(x,y,r,l,col,leg)=>{const p=new THREE.Group();p.position.set(x,y,0);p.add(Cyl(r,r*.9,l,Mt(col),0,-l/2,0),leg?Sp(r*1.5,Mt(0x222222),0,-l,-.05,1,.7,1.4):Sp(r*1.2,sk,0,-l,0));g.add(p);return p};
+g.add(Sp(1,Mt(c.shirt),0,.95,0,.38,.42,.32));
+for(let k=0;k<4;k++){const dy=-.28+k*.19,w=.38*Math.sqrt(1-(dy/.42)**2)+.01,r=mesh(new THREE.TorusGeometry(w,.035,6,18),Mt(c.stripe),0,.95+dy,0);r.rotation.x=Math.PI/2;r.scale.y=.85;g.add(r)}
+g.add(Sp(1,sk,0,1.56,0,.5,.47,.48));const mk=mesh(new THREE.TorusGeometry(.5,.07,6,20),Mt(0x111111),0,1.58,0);mk.rotation.x=Math.PI/2;mk.scale.y=.96;g.add(mk);
+const cp=mesh(new THREE.SphereGeometry(.53,14,8,0,Math.PI*2,0,Math.PI/2),Mt(c.cap),0,1.66,0);cp.scale.set(1,.9,.98);g.add(cp,Sp(.1,Mt(0xffffff),0,2.15,0));
+g.add(Sp(1,Mt(0x9c7a45),0,1,.42,.3,.34,.24),Sp(.07,Mt(0x6b4f2a),0,1.34,.42),Sp(.07,emi(0xffd700,.6),.12,1.3,.5));
+parts=[lim(-.42,1.2,.075,.38,c.shirt),lim(.42,1.2,.075,.38,c.shirt),lim(-.15,.55,.09,.4,c.pants,1),lim(.15,.55,.09,.4,c.pants,1)];pl=g;sc.add(g)}
+function mkCop(){const g=new THREE.Group(),sk=Mt(0xf0b890),bl=Mt(0x1d3a8a),dk=Mt(0x0f1f4d),
+lim=(x,y,r,l,col,leg)=>{const p=new THREE.Group();p.position.set(x,y,0);p.add(Cyl(r,r*.9,l,Mt(col),0,-l/2,0),leg?Sp(r*1.5,Mt(0x111111),0,-l,-.05,1,.7,1.4):Sp(r*1.2,sk,0,-l,0));g.add(p);return p};
+g.add(Sp(1,bl,0,.95,0,.55,.52,.42));const bt=mesh(new THREE.TorusGeometry(.52,.05,6,20),Mt(0x3a2a14),0,.72,0);bt.rotation.x=Math.PI/2;bt.scale.y=.8;g.add(bt);
+g.add(Sp(1,sk,0,1.72,0,.52,.5,.5));const cp=mesh(new THREE.SphereGeometry(.56,14,8,0,Math.PI*2,0,Math.PI/2),dk,0,1.82,0);cp.scale.set(1,.8,1);g.add(cp,Sp(.42,dk,0,1.8,-.3,1,.12,.9),Sp(.07,Mt(0xffd700),0,1.95,-.5));
+const cv=document.createElement('canvas');cv.width=128;cv.height=48;const x=cv.getContext('2d');x.fillStyle='#ffd700';x.fillRect(0,0,128,48);x.fillStyle='#111';x.font='bold 30px sans-serif';x.textAlign='center';x.fillText('POLISI',64,36);
+g.add(mesh(new THREE.PlaneGeometry(.8,.3),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv)}),0,.95,.43));
+const lt=Box(.22,.14,.22,bas(0xff0000),0,2.28,0);g.add(lt);
+const pr=[lim(-.64,1.28,.12,.5,0x1d3a8a),lim(.64,1.28,.12,.5,0x1d3a8a),lim(-.22,.6,.14,.5,0x14213d,1),lim(.22,.6,.14,.5,0x14213d,1)];g.scale.set(.95,1.15,.95);g.visible=false;sc.add(g);return{g,pr,lt}}
+function updCops(dt){const vis=st!=='menu';let cz=2.4-(5-Math.max(lives,0))*.2+(turbo()?1.2:0)+(st==='count'?.6:0)-copKick;if(st==='over')cz=.9;copKick=Math.max(0,copKick-dt*.5);copZ+=(cz-copZ)*Math.min(1,dt*4);
+cops.forEach((c,i)=>{c.g.visible=vis;const tx=Math.max(-3.4,Math.min(3.4,px+(px>.3?-1.4:1.4))),run=st==='over'?0:1,s=Math.sin(ph*1.05+i);cx[i]+=(tx-cx[i])*Math.min(1,dt*4);c.g.position.set(cx[i],.15+Math.abs(s)*.1*run,copZ+i*.6);c.pr[0].rotation.x=-s*.9*run;c.pr[1].rotation.x=s*.9*run;c.pr[2].rotation.x=s*.9*run;c.pr[3].rotation.x=-s*.9*run;c.lt.material.color.set(Math.sin(T*14+i*3)>0?0xff2020:0x2060ff)});
+if(st==='play'){sirenT-=dt;if(sirenT<=0){sirenT=1.2;tn(700,.5,'sine',.025,950)}}}
+function scroll(d){if(thi>=0)for(const c of TG[thi].children){c.position.z+=d*(c.userData.k||1);if(c.position.z>10)c.position.z-=250}for(const p of planks){p.position.z+=d;if(p.position.z>6)p.position.z-=64}for(const p of posts){p.position.z+=d;if(p.position.z>8)p.position.z-=72}}
+function theme(dt){const ph7=(t/60|0)%7,on=ph7>0;MT.visible=!on;
+if(!on){if(thi>=0&&t>1)warn('\ud83c\udf04 PEGUNUNGAN');thOn=false;thi=-1;for(const g of TG)g.visible=false;water.visible=true;sc.fog.near=30;sc.fog.far=260;return}
+const i=ph7-1,Th=TH[i];if(!thOn){thOn=true;thc.copy(sc.background);wtc.copy(water.material.color)}
+if(i!==thi){thi=i;TG.forEach((g,k)=>g.visible=k===i);warn((t>=120&&t<121?'\u26a1 KECEPATAN TINGGI! \u2014 ':'')+Th.n);snd.pw()}
+const u=Math.min(1,dt*1.5);thc.lerp(c2.set(Th.s),u);wtc.lerp(c2.set(Th.w),u);sc.background.copy(thc);sc.fog.color.copy(thc);water.material.color.copy(wtc);hemi.intensity=lp(hemi.intensity,Th.h,u);sun.intensity=lp(sun.intensity,Th.d,u);sun.color.lerp(c2.set(0xffffff),u);sc.fog.near=lp(sc.fog.near,Th.f[0],u);sc.fog.far=lp(sc.fog.far,Th.f[1],u);water.visible=i!==2;stars.material.opacity=Th.st;ff.material.opacity=0;cm.emissiveIntensity=.5;lm.emissiveIntensity=i===2?2:.8;
+for(const s of SP){if(s.f)s.o.rotation[s.a]=Math.sin(T*s.v)*s.f;else s.o.rotation[s.a]+=dt*s.v}}
+// ----- dekorasi baru -----
+TG.forEach(g=>g.clear());const SP=[];
+Object.assign(TH[0],{s:0xe58a68,w:0x232c48,h:.75,d:.6,f:[40,230]});Object.assign(TH[1],{s:0x9fd8f2,w:0x7cb342,h:1.05,d:1,f:[50,260]});Object.assign(TH[2],{s:0x02010c,w:0x02010c,h:.6,d:.5,f:[250,700]});Object.assign(TH[3],{s:0x7fae8a,w:0x2a5a2f,h:.85,d:.7,f:[8,120]});Object.assign(TH[4],{s:0x62b8ea,w:0x0a5a9c,h:1,d:1,f:[60,300]});Object.assign(TH[5],{s:0x7fd8f5,w:0x1fc7c9,h:1.1,d:1.1,f:[60,320]});
+const P2=(i,o,a,b,y,k=1,z0)=>{o.userData.k=k;put(TG[i],o,a,b,y);if(z0!==undefined)o.position.z=z0-rnd()*60;return o},
+pine=c=>Grp(Cyl(.3,.4,2.5,Mt(0x4e342e),0,1.25,0),Con(2.2,3.5,Mt(c),0,3.8,0,8),Con(1.7,3,Mt(c),0,5.6,0,8),Con(1.2,2.5,Mt(c),0,7.2,0,8)),
+foam=i=>{for(let k=0;k<60;k++)P2(i,Box(3,.04,.3,bas(0xffffff),0,0,0),5,80,-4.95)},
+palm2=()=>{const q=new THREE.Group(),tr=Mt(0x8d6e4a);for(let k=0;k<4;k++){const s=Cyl(.28-k*.03,.33-k*.03,1.5,tr,k*.22,.75+k*1.45,0);s.rotation.z=-.16;q.add(s)}const cr=new THREE.Group();cr.position.set(.8,6.4,0);for(let k=0;k<7;k++){const lf=new THREE.Group(),b=Box(3,.06,.8,Mt(0x2e9e44),1.5,0,0);b.rotation.z=-.4;lf.add(b);lf.rotation.y=k*.9;cr.add(lf)}cr.add(Sp(.22,Mt(0x5d4037),.2,-.3,.3),Sp(.22,Mt(0x5d4037),-.2,-.3,-.2),Sp(.22,Mt(0x5d4037),.1,-.3,-.35));q.add(cr);q.scale.setScalar(1+rnd()*.3);return q};
+// KOTA
+const WT=[0,1,2].map(()=>{const c=document.createElement('canvas');c.width=64;c.height=128;const x=c.getContext('2d');x.fillStyle='#1c2536';x.fillRect(0,0,64,128);for(let i=0;i<6;i++)for(let j=0;j<12;j++){x.fillStyle=rnd()<.55?'#ffd98a':'#2c3d5a';x.fillRect(4+i*10,4+j*10.5,7,7)}const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t});
+for(let i=0;i<46;i++){const h=[22,30,40,52,64][rnd()*5|0],w=6+rnd()*4,t=WT[i%3].clone();t.needsUpdate=true;t.repeat.set(Math.round(w/4.5),Math.round(h/8));const b=Box(w,h,w,new THREE.MeshLambertMaterial({map:t,emissiveMap:t,emissive:0xffffff,emissiveIntensity:.55}));P2(0,b,13,75,-5+h/2);const s=-Math.sign(b.position.x);
+if(rnd()<.4)b.add(Cyl(.12,.12,7,Mt(0x888888),0,h/2+3.5,0),Sp(.3,emi(0xff2222,1.2),0,h/2+7,0));if(rnd()<.35)b.add(Box(.3,5,6,emi([0xff3df0,0x2de2ff,0xffe92d][i%3],1),s*(w/2+.2),h*.25,0));if(i%6===0)b.add(Con(w*.6,10,Mt(0x9aa7b8),0,h/2+5,0,4))}
+// DESA
+for(let i=0;i<18;i++){const h=Grp(Box(4,2.6,4,Mt([0xf4e6c8,0xe9d5a8,0xf8f0e0][i%3]),0,1.3,0),Con(3.7,2.2,Mt(i%2?0xb5442e:0x6d4c41),0,3.7,0,4),Box(.7,1.4,.7,Mt(0x8d6e63),1.2,3.9,-.8),Box(.9,1.5,.12,Mt(0x5d4037),0,.75,2.01),Box(.9,.9,.12,Mt(0x8fd3ff),-1.2,1.6,2.01),Box(.9,.9,.12,Mt(0x8fd3ff),1.2,1.6,2.01));h.children[1].rotation.y=Math.PI/4;P2(1,h,10,55,-5);h.rotation.y=h.position.x>0?-Math.PI/2:Math.PI/2}
+for(let i=0;i<4;i++){const bl=new THREE.Group();for(let k=0;k<2;k++){const w=Grp(Box(.5,6,.1,Mt(0xffffff),0,0,0));w.rotation.z=k*Math.PI/2;bl.add(w)}bl.position.set(0,8,2.6);const wm=Grp(Cyl(1.6,2.4,9,Mt(0xe8d9b5),0,4.5,0),Con(2,2.2,Mt(0xb5442e),0,10,0),bl);P2(1,wm,14,60,-5);wm.rotation.y=wm.position.x>0?-Math.PI/2:Math.PI/2;SP.push({o:bl,a:'z',v:1.2})}
+for(let i=0;i<24;i++)P2(1,Box(10+rnd()*6,.1,14+rnd()*10,Mt([0x9bd24a,0xc9d24a,0x6fae3a,0x8d6e3a][i%4])),9,70,-4.95+rnd()*.04);
+for(let i=0;i<8;i++)P2(1,Sp(1.4,Mt(0xe0b84a),0,0,0,1,1.2,1),10,50,-4.2);
+for(let i=0;i<16;i++)P2(1,Grp(Cyl(.3,.4,3,Mt(0x5d4037),0,1.5,0),Sp(2,Mt(0x4caf50),0,4.2,0),Sp(1.5,Mt(0x66bb6a),1.2,3.6,.4),Sp(1.4,Mt(0x66bb6a),-1.1,3.8,-.3)),8,60,-5);
+for(let i=0;i<8;i++)P2(1,Sp(1,Mt(0x7cb342),0,0,0,32,13,28),70,150,-5,.2,-120);
+// ANGKASA
+const ec=document.createElement('canvas');ec.width=256;ec.height=128;{const x=ec.getContext('2d');x.fillStyle='#1d5fa8';x.fillRect(0,0,256,128);x.fillStyle='#3f9a4a';for(let i=0;i<14;i++){x.beginPath();x.ellipse(rnd()*256,20+rnd()*88,10+rnd()*26,6+rnd()*14,rnd()*3,0,6.3);x.fill()}x.fillStyle='rgba(255,255,255,.65)';for(let i=0;i<18;i++){x.beginPath();x.ellipse(rnd()*256,rnd()*128,12+rnd()*20,3+rnd()*4,0,0,6.3);x.fill()}}
+const et=new THREE.CanvasTexture(ec);P2(2,Grp(Sp(16,new THREE.MeshLambertMaterial({map:et,emissiveMap:et,emissive:0xffffff,emissiveIntensity:.5})),Sp(16.5,bas(0x7fc4ff,{transparent:true,opacity:.18}))),45,60,16,.08,-160);
+P2(2,Grp(Sp(9,emi(0xd9b27c,.35)),(()=>{const r=mesh(new THREE.TorusGeometry(15,1.2,2,40),Mt(0xe6d3a3));r.rotation.x=1.2;r.scale.z=.15;return r})()),70,110,28,.1,-200);
+P2(2,Sp(6,emi(0xd9532f,.3)),30,60,6,.1,-120);P2(2,Grp(Sp(5,Mt(0xb8b8bc)),Sp(1,Mt(0x8a8a90),2,2,4.4),Sp(1.3,Mt(0x8a8a90),-2.5,-1,4.4),Sp(.8,Mt(0x8a8a90),-1,3,4.6)),25,50,14,.15,-90);
+P2(2,Grp(Sp(14,bas(0xffd54a,{fog:false})),Sp(20,bas(0xffb347,{transparent:true,opacity:.25,fog:false}))),100,140,35,.03,-230);
+[0xff3df0,0x2de2ff,0x8a5cff,0xff7a3d,0x3dff9c].forEach(c=>P2(2,Sp(40,bas(c,{transparent:true,opacity:.12,depthWrite:false,fog:false})),40,130,rnd()*50,.03,-210));
+for(let i=0;i<3;i++){const s=Grp(Box(1.2,1.2,1.2,Mt(0xcccccc)),Box(5,.1,1.4,emi(0x2255ff,.5),3.2,0,0),Box(5,.1,1.4,emi(0x2255ff,.5),-3.2,0,0),Cyl(.1,.1,1.5,Mt(0xeeeeee),0,1.2,0));P2(2,s,10,45,2+rnd()*14);SP.push({o:s,a:'y',v:.8})}
+for(let i=0;i<3;i++){const u=Grp(Sp(2.4,Mt(0xb0b8c4),0,0,0,1,.3,1),Sp(1.2,emi(0x66ffcc,.8),0,.5,0,1,.9,1));for(let k=0;k<6;k++)u.add(Sp(.18,emi(0xffee55,1.5),Math.cos(k*1.05)*2.2,0,Math.sin(k*1.05)*2.2));P2(2,u,12,50,2+rnd()*14);SP.push({o:u,a:'y',v:1.5})}
+for(let i=0;i<30;i++)P2(2,mesh(new THREE.DodecahedronGeometry(.8+rnd()*1.7),Mt(0x8a8a92)),8,45,-2+rnd()*16);
+for(let i=0;i<180;i++)P2(2,mesh(new THREE.SphereGeometry(.18,4,3),bas(0xffffff)),6,120,-40+rnd()*90,.6);
+// HUTAN
+const gc=[0x1f5a2a,0x2d7a38,0x3f8f3a,0x174d24];
+for(let i=0;i<80;i++){const p=pine(gc[i%4]);p.scale.setScalar(.9+rnd()*.9);P2(3,p,6,60,-5)}
+for(let i=0;i<30;i++){const c=gc[i%4];P2(3,Grp(Cyl(.45,.6,4,Mt(0x5d4037),0,2,0),Sp(3,Mt(c),0,5.5,0),Sp(2.2,Mt(c),2,4.8,0),Sp(2,Mt(c),-2,5,1)),8,55,-5)}
+for(let i=0;i<8;i++)P2(3,Grp(Cyl(1.6,2.2,18,Mt(0x5a3d2b),0,9,0),Sp(7,Mt(0x2d7a38),0,19,0,1,.7,1),Sp(5,Mt(0x3f8f3a),4,17,2)),12,40,-5);
+for(let i=0;i<40;i++)P2(3,Sp(1.2,Mt(0x2e7d32),0,.5,0,1.4,.9,1.4),5,40,-4.6);
+for(let i=0;i<26;i++){const m=Grp(Cyl(.12,.15,.7,Mt(0xf5f0e0),0,.35,0),Sp(.45,Mt(0xe53935),0,.8,0,1,.55,1),Sp(.07,Mt(0xffffff),.15,1.05,.1));m.scale.setScalar(1.5+rnd());P2(3,m,6,28,-5)}
+for(let i=0;i<10;i++){const l=Cyl(.7,.7,5,Mt(0x6d4c41));l.rotation.x=Math.PI/2;P2(3,l,7,35,-4.3)}
+for(let i=0;i<14;i++){const r=mesh(new THREE.DodecahedronGeometry(1.5+rnd()*1.5),Mt(0x6b7a5a));r.scale.y=.8;P2(3,r,7,45,-4.5)}
+for(let i=0;i<6;i++){const b=Con(4,40,bas(0xfff3a0,{transparent:true,opacity:.1,depthWrite:false,blending:THREE.AdditiveBlending}),0,0,0,12);b.rotation.z=(i%2?.3:-.3);P2(3,b,12,45,12,.5)}
+for(let i=0;i<30;i++)P2(3,Sp(.12,bas(0xe6ff6a)),4,30,-3+rnd()*6);
+// LAUT
+foam(4);
+for(let i=0;i<8;i++){const hl=Mt(0x7a4a22),pr=Con(.75,1.6,hl,2.7,.45,0,4);pr.rotation.z=-Math.PI/2;const sh=Grp(Box(4,.8,1.5,hl,0,.4,0),pr,Cyl(.1,.1,6,Mt(0x444444),0,3.8,0),Box(.05,4,2.4,Mt(0xffffff),0,3.9,0),Box(.05,.5,.9,bas(0xe53935),0,7,.5));sh.rotation.y=Math.PI/2;P2(4,sh,10,80,-5)}
+for(let i=0;i<3;i++){const c=Grp(Box(12,2,4,Mt(0xffffff),0,1,0),Box(9,1.6,3.4,Mt(0xeeeeee),0,2.8,0),Box(5,1.4,3,Mt(0xdddddd),0,4.3,0),Cyl(.6,.6,2.5,Mt(0xd32f2f),2,6,0),Box(12.2,.4,4.2,Mt(0x1e3a8a),0,.3,0));c.rotation.y=Math.PI/2;P2(4,c,25,90,-5)}
+for(let i=0;i<3;i++)P2(4,Grp(Sp(7,Mt(0x7b7f85),0,0,0,1.4,.7,1.4),Cyl(1.5,2.2,4,Mt(0xffffff),0,4,0),Cyl(1.3,1.5,2,Mt(0xd32f2f),0,7,0),Cyl(1.15,1.3,2,Mt(0xffffff),0,9,0),Sp(1,emi(0xfff2a0,2),0,10.8,0),Con(1.5,1.4,Mt(0xd32f2f),0,12,0)),20,80,-5);
+for(let i=0;i<6;i++){const g=Grp(Sp(6,Mt(0xf2dca0),0,0,0,1.4,.5,1.4),palm2(),palm2());g.children[1].position.set(2,.5,1);g.children[2].position.set(-2,.5,-1);P2(4,g,15,80,-5)}
+for(let i=0;i<16;i++)P2(4,Grp(Sp(.5,Mt(0xff3d00),0,0,0,1,1.1,1),Cyl(.08,.08,1.2,Mt(0xffd600),0,1,0)),6,40,-4.7);
+for(let i=0;i<14;i++){const L=new THREE.Group(),R2=new THREE.Group();L.add(Box(1.1,.04,.3,bas(0xffffff),-.55,0,0));R2.add(Box(1.1,.04,.3,bas(0xffffff),.55,0,0));P2(4,Grp(L,R2),5,40,8+rnd()*12);SP.push({o:L,a:'z',v:6,f:.5},{o:R2,a:'z',v:6,f:-.5})}
+// PANTAI
+foam(5);
+for(let i=0;i<10;i++){const r=8+rnd()*5,g=Grp(Cyl(r,r*1.15,.8,Mt(0xf2dca0),0,.1,0));for(let j=0;j<2;j++){const p=palm2();p.position.set((rnd()-.5)*r,.4,(rnd()-.5)*r);g.add(p)}
+const uc=[0xe53935,0x1e88e5,0xfdd835,0xab47bc][i%4];const um=Grp(Cyl(.06,.06,2.4,Mt(0xeeeeee),0,1.2,0),Con(1.7,.8,Mt(uc),0,2.6,0,8));um.rotation.z=.15;um.position.set(r*.3,.5,r*.2);g.add(um,Box(1.4,.04,2.2,Mt(uc),r*.3-.8,.55,r*.2));
+if(i%2){const cs=Grp(Box(2,1,2,Mt(0xe8c882),0,.5,0),Cyl(.35,.35,1.6,Mt(0xe8c882),1,.8,1),Con(.45,.6,Mt(0xe53935),1,1.9,1),Cyl(.35,.35,1.6,Mt(0xe8c882),-1,.8,-1),Con(.45,.6,Mt(0xe53935),-1,1.9,-1));cs.position.set(-r*.3,.5,-r*.2);g.add(cs)}
+if(i%3===0){const hu=Grp(Box(3,2,3,Mt(0xd7b377),0,1,0),Con(3,1.8,Mt(0xc79a4a),0,2.9,0,8));hu.position.set(-r*.4,.5,r*.3);g.add(hu)}
+const sb=Sp(1,Mt([0xff7043,0x26c6da,0xffee58][i%3]),r*.1,2,-r*.3,.4,2,.08);sb.rotation.z=.2;g.add(sb);P2(5,g,10,70,-5)}
+P2(5,Grp(Sp(12,bas(0xfff2a0,{fog:false})),Sp(17,bas(0xffd27a,{transparent:true,opacity:.25,fog:false}))),40,90,30,.03,-230);
+// PEGUNUNGAN (latar awal): hutan pinus kaki gunung
+for(let i=0;i<70;i++){const p=pine(0x2f5d3a);p.scale.setScalar(3+rnd()*2);p.position.set((rnd()<.5?-1:1)*(50+rnd()*210),-5,-130-rnd()*105);MT.add(p)}
+for(let i=0;i<6;i++){const h=Sp(1,Mt(0x3d6b3a),(i-2.5)*110+rnd()*30,-5,-175-rnd()*20,45,16,32);MT.add(h)}
+// ===== V3: karakter proporsi normal (bukan chibi) =====
+function build(){if(pl)sc.remove(pl);const c=CO[costume],sk=Mt(0xf5c9a0),g=new THREE.Group(),
+lim=(x,y,r,l,col,leg)=>{const p=new THREE.Group();p.position.set(x,y,0);p.add(Cyl(r,r*.85,l,Mt(col),0,-l/2,0),leg?Sp(r*1.2,Mt(0x222222),0,-l,-.06,1,.6,1.9):Sp(r*1.1,sk,0,-l,0));g.add(p);return p};
+const tr=Cyl(.3,.26,.75,Mt(c.shirt),0,1.25,0);tr.scale.z=.7;g.add(tr);
+for(let k=0;k<4;k++){const y=.95+k*.19,r=.26+.04*((y-.875)/.75)+.012,q=mesh(new THREE.TorusGeometry(r,.03,6,18),Mt(c.stripe),0,y,0);q.rotation.x=Math.PI/2;q.scale.y=.7;g.add(q)}
+const hp=Cyl(.27,.25,.2,Mt(c.pants),0,.82,0);hp.scale.z=.72;const bt=mesh(new THREE.TorusGeometry(.275,.03,6,18),Mt(0x111111),0,.9,0);bt.rotation.x=Math.PI/2;bt.scale.y=.72;g.add(hp,bt);
+g.add(Sp(.13,Mt(c.shirt),-.36,1.55,0),Sp(.13,Mt(c.shirt),.36,1.55,0),Cyl(.09,.09,.14,sk,0,1.7,0),Sp(1,sk,0,1.88,0,.21,.25,.22),Sp(.04,sk,-.21,1.88,0),Sp(.04,sk,.21,1.88,0));
+
+const cp=mesh(new THREE.SphereGeometry(.25,14,8,0,Math.PI*2,0,Math.PI/2),Mt(c.cap),0,1.97,0);cp.scale.set(.9,1,.95);g.add(cp,Sp(.05,Mt(0xffffff),0,2.23,0));
+g.add(Sp(1,Mt(c.stripe),0,1.25,.32,.27,.3,.2),Sp(.06,Mt(0x6b4f2a),0,1.58,.32),Sp(.06,emi(0xffd700,.6),.1,1.5,.42));
+parts=[lim(-.4,1.55,.07,.72,c.shirt),lim(.4,1.55,.07,.72,c.shirt),lim(-.14,.8,.1,.76,c.pants,1),lim(.14,.8,.1,.76,c.pants,1)];pl=g;sc.add(g)}
+function mkCop(){const g=new THREE.Group(),sk=Mt(0xf0b890),bl=Mt(0x1d3a8a),dk=Mt(0x0f1f4d),
+lim=(x,y,r,l,col,leg)=>{const p=new THREE.Group();p.position.set(x,y,0);p.add(Cyl(r,r*.85,l,Mt(col),0,-l/2,0),leg?Sp(r*1.2,Mt(0x111111),0,-l,-.06,1,.6,1.9):Sp(r*1.1,sk,0,-l,0));g.add(p);return p};
+const tr=Cyl(.38,.33,.8,bl,0,1.25,0);tr.scale.z=.72;const hp=Cyl(.34,.3,.22,Mt(0x14213d),0,.78,0);hp.scale.z=.72;const bt=mesh(new THREE.TorusGeometry(.36,.04,6,20),Mt(0x3a2a14),0,.88,0);bt.rotation.x=Math.PI/2;bt.scale.y=.72;g.add(tr,hp,bt);
+g.add(Sp(.16,bl,-.44,1.58,0),Sp(.16,bl,.44,1.58,0),Sp(.07,Mt(0xffd700),-.44,1.72,0),Sp(.07,Mt(0xffd700),.44,1.72,0),Cyl(.1,.1,.14,sk,0,1.74,0),Sp(1,sk,0,1.92,0,.23,.27,.24));
+g.add(Cyl(.25,.28,.18,dk,0,2.12,0),Sp(.3,dk,0,2.02,-.08,1,.1,1.15),Sp(.04,Mt(0xffd700),0,2.12,-.28));
+const cv=document.createElement('canvas');cv.width=128;cv.height=48;const x=cv.getContext('2d');x.fillStyle='#ffd700';x.fillRect(0,0,128,48);x.fillStyle='#111';x.font='bold 30px sans-serif';x.textAlign='center';x.fillText('POLISI',64,36);
+g.add(mesh(new THREE.PlaneGeometry(.6,.22),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv)}),0,1.3,.27));
+const lt=Box(.16,.1,.16,bas(0xff0000),0,2.27,0);g.add(lt);
+const pr=[lim(-.52,1.58,.1,.75,0x1d3a8a),lim(.52,1.58,.1,.75,0x1d3a8a),lim(-.18,.78,.125,.78,0x14213d,1),lim(.18,.78,.125,.78,0x14213d,1)];g.scale.set(1.02,1.08,1.02);g.visible=false;sc.add(g);return{g,pr,lt}}
+let alT=0;
+function warnRed(tx){alT=2;$('alr').innerHTML='<b>\u26a0\ufe0f '+tx+' \u26a0\ufe0f</b>';[900,600,900].forEach((f,i)=>setTimeout(()=>tn(f,.14,'sawtooth',.08),i*150))}
+function alertTick(dt){const a=$('alr');alT=Math.max(0,alT-dt);const danger=st==='play'&&lives>0&&lives<=2;
+if(st==='play'&&(alT>0||danger)){if(alT<=0&&a.dataset.d!=='1'){a.innerHTML='<b>\u26a0\ufe0f AWAS! ROBOT PENJAGA HAMPIR MENYUSUL! \u26a0\ufe0f</b>';a.dataset.d='1'}if(alT>0)a.dataset.d='';a.style.display='block'}else{a.style.display='none';a.dataset.d=''}
+const ex=(5-Math.max(lives,0))*.15;cops.forEach(c=>c.g.position.z-=ex)}
+// ===== AUDIO V2: musik latar + SFX baru =====
+snd.jump=()=>{if(muted||!AC)return;const t0=AC.currentTime,o=AC.createOscillator(),g=AC.createGain(),l=AC.createOscillator(),lg=AC.createGain();o.type='sine';o.frequency.setValueAtTime(180,t0);o.frequency.exponentialRampToValueAtTime(620,t0+.09);o.frequency.exponentialRampToValueAtTime(260,t0+.32);g.gain.setValueAtTime(.18,t0);g.gain.exponentialRampToValueAtTime(.001,t0+.34);l.frequency.value=28;lg.gain.value=40;l.connect(lg);lg.connect(o.frequency);l.start(t0);l.stop(t0+.34);o.connect(g);g.connect(AC.destination);o.start(t0);o.stop(t0+.34)};
+snd.coin=c=>{const f=1200+Math.min(c,12)*70;tn(f,.28,'sine',.12);tn(f*2,.18,'sine',.04)};
+snd.hit=()=>{tn(520,.55,'sawtooth',.12,70);ns(.3,.18,700)};
+snd.over=()=>[440,392,330,262,196].forEach((f,i)=>setTimeout(()=>tn(f,.3,'square',.1,f*.85),i*220));
+const midi=n=>440*Math.pow(2,(n-69)/12),ML=[[69,72,76,72,69,72,76,81],[65,69,72,69,65,69,72,77],[67,72,76,72,67,72,76,79],[67,71,74,71,67,71,74,79]],BS=[45,41,48,43];
+let mT=null,mStep=0,mNext=0,NB;
+function note(t0,f,d,ty,v,f2){const o=AC.createOscillator(),g=AC.createGain();o.type=ty;o.frequency.setValueAtTime(f,t0);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t0+d);g.gain.setValueAtTime(v,t0);g.gain.exponentialRampToValueAtTime(.001,t0+d);o.connect(g);g.connect(AC.destination);o.start(t0);o.stop(t0+d)}
+function hat(t0,v){if(!NB){NB=AC.createBuffer(1,AC.sampleRate*.05|0,AC.sampleRate);const a=NB.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=(rnd()*2-1)*(1-i/a.length)}const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();s.buffer=NB;f.type='highpass';f.frequency.value=7000;g.gain.value=v;s.connect(f);f.connect(g);g.connect(AC.destination);s.start(t0)}
+function sched(){if(!AC)return;const now=AC.currentTime;if(st==='pause'||st==='over'||st==='done'){mNext=now+.05;return}
+while(mNext<now+.25){const d=t>=120?.16:.2,s=mStep%32,bar=s>>3,i=s&7,t0=mNext;
+if(!muted){note(t0,midi(ML[bar][i]),d*.9,'square',.03);if(i%2===0){note(t0,midi(BS[bar]+(i%4===0?0:12)),d*1.6,'triangle',.08);note(t0,140,.12,'sine',.12,45)}else hat(t0,(i===3||i===7)?.06:.03)}
+mStep++;mNext+=d}}
+function startMusic(){au();if(!AC||mT)return;mStep=0;mNext=AC.currentTime+.1;mT=setInterval(sched,60)}
+function stopMusic(){if(mT){clearInterval(mT);mT=null}}
+// ===================== EDUKASI: BRIDGE RUN – Explore Yourself =====================
+Object.assign(CO[0],{n:'Penjelajah',shirt:0xff7043,stripe:0xffffff,pants:0x1976d2,cap:0xffeb3b});Object.assign(CO[1],{n:'Astronot Cilik',shirt:0xeceff1,stripe:0x42a5f5,pants:0xcfd8dc,cap:0x42a5f5});Object.assign(CO[2],{n:'Juara Emas',shirt:0xffd54f,stripe:0xef6c00,pants:0x6a1b9a,cap:0xffc107});
+function mkCop(){const g=new THREE.Group(),o=Mt(0xff9800),w=Mt(0xffffff),lim=(x,y,r,l,col,leg)=>{const p=new THREE.Group();p.position.set(x,y,0);p.add(Cyl(r,r*.85,l,Mt(col),0,-l/2,0),leg?Sp(r*1.3,Mt(0x37474f),0,-l,-.06,1,.6,1.8):Sp(r*1.2,w,0,-l,0));g.add(p);return p};
+g.add(Sp(1,o,0,1.2,0,.5,.55,.42),Sp(1,w,0,1.95,0,.4,.34,.37),Cyl(.025,.025,.35,w,0,2.4,0),Sp(.1,Mt(0xffd54f),0,.7,0,.5,.1,.45));const lt=Sp(.09,bas(0xff0000),0,2.62,0);g.add(lt);
+const cv=document.createElement('canvas');cv.width=128;cv.height=48;const x=cv.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,128,48);x.fillStyle='#e65100';x.font='bold 28px sans-serif';x.textAlign='center';x.fillText('ROBOT',64,34);g.add(mesh(new THREE.PlaneGeometry(.6,.22),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv)}),0,1.2,.24));
+const pr=[lim(-.58,1.45,.09,.6,0xff9800),lim(.58,1.45,.09,.6,0xff9800),lim(-.2,.7,.11,.7,0x607d8b,1),lim(.2,.7,.11,.7,0x607d8b,1)];g.scale.set(1.05,1.05,1.05);g.visible=false;sc.add(g);return{g,pr,lt}}
+const LV=['KENALI DIRIMU','TEMUKAN KESUKAANMU','KENALI KEMAMPUANMU','JELAJAHI DUNIA PROFESI','RANCANG MASA DEPANMU'];
+const CAT={seni:{n:'Seni & Kreativitas',i:'🎨',ab:['Kreativitas','Imajinasi','Mengungkapkan diri'],pr:['Seniman','Desainer','Musisi','Animator']},sains:{n:'Sains & Penelitian',i:'🔬',ab:['Rasa ingin tahu','Berpikir logis','Teliti'],pr:['Ilmuwan','Dokter peneliti','Astronom','Ahli laboratorium']},teknologi:{n:'Teknologi & Rekayasa',i:'💻',ab:['Memecahkan masalah','Berpikir runtut','Kreatif membuat sesuatu'],pr:['Programmer','Insinyur','Pembuat game','Ahli robot']},olahraga:{n:'Olahraga & Kesehatan',i:'⚽',ab:['Disiplin','Semangat tim','Menjaga kebugaran'],pr:['Atlet','Dokter','Pelatih olahraga','Ahli gizi']},sosial:{n:'Sosial & Kemanusiaan',i:'🤝',ab:['Empati','Kerja sama','Peduli sesama'],pr:['Pekerja sosial','Psikolog','Relawan','Perawat']},pendidikan:{n:'Pendidikan & Komunikasi',i:'📚',ab:['Berkomunikasi','Sabar','Berbagi ilmu'],pr:['Guru','Penyiar','Penulis','Jurnalis']},lingkungan:{n:'Lingkungan & Alam',i:'🌳',ab:['Peduli alam','Pengamat','Bertanggung jawab'],pr:['Ahli lingkungan','Dokter hewan','Petani modern','Pecinta alam']}};
+/* ====== BANK SOAL (EDIT DI SINI) ======
+   10 soal = 5 level x 2 soal (soal 1-2 Level 1, 3-4 Level 2, dst).
+   k12 = kalimat untuk kelas 1-2, k34 = kelas 3-4, k56 = kelas 5-6.
+   o = pilihan jawaban: ['teks pilihan','kategori'], kategori: seni, sains, teknologi, olahraga, sosial, pendidikan, lingkungan.
+   Isi di bawah hanya PLACEHOLDER. Ganti dengan soal Anda sendiri. */
+const PC=['seni','sains','teknologi','olahraga'];
+const QB=Array.from({length:10},(_,i)=>({k12:'[Soal '+(i+1)+' – kelas 1–2: tulis pertanyaan di sini]',k34:'[Soal '+(i+1)+' – kelas 3–4: tulis pertanyaan di sini]',k56:'[Soal '+(i+1)+' – kelas 5–6: tulis pertanyaan di sini]',o:PC.map((c,j)=>['[Pilihan '+'ABCD'[j]+']',c])}));
+let stu={name:'',kls:1,usia:''},ans=[],bank=0,qT=5,wasOn=false,asking=false,showLv=false,ahud=0,stat={coins:0,nm:0,combo:0};
+const ssv=(k,v)=>{try{sessionStorage.setItem(k,JSON.stringify(v))}catch(e){}},sld=(k,d)=>{try{const v=sessionStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},esc=s=>String(s).replace(/[&<>"]/g,c=>'&#'+c.charCodeAt(0)+';');
+stu=sld('brStu',stu);ans=sld('brAns',[]);if(!Array.isArray(ans))ans=[];
+IG.quest=new THREE.SphereGeometry(.6,16,12);IM.quest=emi(0xb36bff,.9);IC.quest=0xb36bff;
+const qc=document.createElement('canvas');qc.width=qc.height=64;{const x=qc.getContext('2d');x.fillStyle='#fff';x.font='bold 56px sans-serif';x.textAlign='center';x.fillText('?',32,50)}
+const QTX=new THREE.CanvasTexture(qc),qSprite=()=>{const s=new THREE.Sprite(new THREE.SpriteMaterial({map:QTX}));s.scale.set(1.1,1.1,1);return s};
+const _sc=snd.coin;snd.coin=c=>{stat.coins++;_sc(c)};snd.lvl=()=>[523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>tn(f,.18,'triangle',.1),i*110));
+const _pop=pop;pop=(tx,c)=>{if(tx&&tx.indexOf('NYARIS')===0)stat.nm++;_pop(tx,c)};
+document.body.insertAdjacentHTML('beforeend',"<div id='adv'><div id='lvn'></div><div id='pb'><i></i></div><div style='display:flex;justify-content:space-between;gap:10px'><span id='qn'></span><span id='lvs'></span></div></div><div class='ov' id='form'><h1>👋 Halo, Penjelajah!</h1><p style='font-size:18px'>Isi dulu ya, lalu kita mulai petualangan!</p><input id='fn' placeholder='Nama kamu' maxlength='30'><select id='fk'><option value='1'>Kelas 1 SD</option><option value='2'>Kelas 2 SD</option><option value='3'>Kelas 3 SD</option><option value='4'>Kelas 4 SD</option><option value='5'>Kelas 5 SD</option><option value='6'>Kelas 6 SD</option></select><input id='fu' type='number' min='5' max='15' placeholder='Usia (boleh dikosongkan)'><button class='b' id='fgo'>🚀 Mulai Petualangan</button></div><div class='ov' id='how'><h1>📖 Petunjuk</h1><p style='font-size:16px'>⬅️➡️ / A D: pindah jalur · ⬆️ / W / Spasi: lompat · ⬇️ / S: meluncur<br>Layar sentuh: geser kiri, kanan, atas, bawah.<br>Hindari rintangan, kumpulkan koin dan power-up 🛡️🧲⚡💖<br>Ambil bola ungu ❓ untuk menjawab pertanyaan. Jawab 10 pertanyaan di 5 level untuk melihat profil masa depanmu!<br>Tidak ada jawaban benar atau salah, pilih yang paling kamu suka.</p><button class='b' id='hx'>Mengerti!</button></div><div class='ov' id='qm'><div id='qlv' style='font-weight:700;color:#ffd54f'></div><h2 id='qt'></h2><div id='qo'></div></div><div class='ov' id='lvb'></div><div class='ov' id='fin'></div><div class='ov' id='prof'></div>");
+$('menu').innerHTML="<h1 style='font-size:clamp(36px,9vw,72px)'>🌉 BRIDGE RUN</h1><div style='font-size:clamp(16px,3.5vw,24px);font-weight:700;text-shadow:0 2px 6px #000'>Kenali Dirimu, Temukan Masa Depanmu.</div><div id='cos'></div><div id='best1' style='font-weight:700'></div><div style='display:flex;gap:10px;flex-wrap:wrap;justify-content:center'><button class='b' id='go'>🏃 Mulai Bermain</button><button class='b g' id='how2'>📖 Petunjuk</button></div>";$('cos').style.cssText='display:flex;gap:8px;flex-wrap:wrap;justify-content:center';$('again').textContent='▶ Lanjutkan Petualangan';
+$('go').onclick=()=>{au();startMusic();show('menu',false);if(stu.name){$('fn').value=stu.name;$('fk').value=stu.kls;$('fu').value=stu.usia}show('form',true)};$('how2').onclick=()=>show('how',true);$('hx').onclick=()=>show('how',false);
+$('fgo').onclick=()=>{const n=$('fn').value.trim();if(!n){$('fn').style.borderColor='red';$('fn').focus();return}const k=+$('fk').value,same=stu.name===n&&stu.kls===k;stu={name:n,kls:k,usia:$('fu').value};ssv('brStu',stu);if(!same||ans.length>=QB.length){ans=[];bank=0;ssv('brAns',ans)}show('form',false);start()};
+function advReset(){stat={coins:0,nm:0,combo:0};qT=5;wasOn=false;asking=false;showLv=true;['qm','lvb','fin','prof'].forEach(i=>show(i,false));$('adv').style.display='block';adv()}
+function adv(){const q=ans.length,f=Math.floor(q/2),l=Math.min(5,f+1);$('lvn').textContent='⭐ Level '+l+'/5 · '+LV[l-1];$('qn').textContent='📝 Soal '+q+'/10';$('pb').firstChild.style.width=q*10+'%';$('lvs').textContent=LV.map((_,i)=>i<f?'✅':i===f?'▶️':'🔒').join(' ')}
+function advTick(dt){if(st!=='play')return;if(showLv){showLv=false;const l=(ans.length>>1)+1;warn('⭐ LEVEL '+l+': '+LV[Math.min(4,l-1)])}stat.combo=Math.max(stat.combo,combo);
+const on=its.some(i=>i.type==='quest'&&!i.dead);if(wasOn&&!on)qT=3;wasOn=on;if(!on){qT-=dt;if(qT<=0&&ans.length<10&&!asking){addI('quest',[-1,0,1][rnd()*3|0]*2,-110);its[its.length-1].m.add(qSprite());wasOn=true}}
+ahud-=dt;if(ahud<=0){ahud=.3;adv()}}
+function openQ(){if(asking||ans.length>=10)return;asking=true;st='quiz';const i=ans.length,Q=QB[i],k=stu.kls<=2?Q.k12:stu.kls<=4?Q.k34:Q.k56;$('qlv').textContent='Level '+((i>>1)+1)+' · '+LV[i>>1]+' · Soal '+(i+1)+'/10';$('qt').textContent=k;const o=$('qo');o.innerHTML='';Q.o.forEach((x,j)=>{const b=document.createElement('button');b.className='b qb';b.textContent=x[0];b.onclick=()=>pick(i,j);o.appendChild(b)});show('qm',true);snd.pw()}
+function pick(i,j){if(!asking||ans.length!==i)return;asking=false;ans[i]={c:QB[i].o[j][1],o:j};ssv('brAns',ans);$('qo').innerHTML="<div style='font-size:26px'>✅ Jawabanmu tersimpan!</div>";tn(1500,.2,'sine',.1);
+setTimeout(()=>{if(st!=='quiz')return;show('qm',false);adv();const n=ans.length;if(n>=10)finish();else if(n%2===0)lvUp(n/2);else{st='play';inv=Math.max(inv,1.5)}},900)}
+function lvUp(n){st='lvl';snd.lvl();$('lvb').innerHTML="<div style='font-size:60px'>🎉</div><h1>Selamat! Level "+n+" selesai!</h1><p style='font-size:20px'>Selanjutnya: Level "+(n+1)+" – "+LV[n]+"</p>";show('lvb',true);setTimeout(()=>{if(st!=='lvl')return;show('lvb',false);st='play';inv=Math.max(inv,1.5);showLv=true},2800)}
+function finish(){st='done';stopMusic();bank+=score|0;score=0;snd.lvl();$('adv').style.display='none';$('fin').innerHTML="<div style='font-size:64px'>🏆</div><h1>Petualangan Selesai!</h1><p style='font-size:20px'>Hebat, "+esc(stu.name)+"! Kamu menyelesaikan semua 5 level.<br>Total skor: <b>"+bank+"</b> · 🪙 "+stat.coins+" · 💨 "+stat.nm+" · 🔥 "+stat.combo+"</p><button class='b' id='fp'>📊 Lihat Profil Hasil</button><button class='b g' id='fa'>🔄 Main Lagi</button>";show('fin',true);$('fp').onclick=()=>{profile();show('fin',false);show('prof',true)};$('fa').onclick=resetAll}
+function resetAll(){ans=[];bank=0;ssv('brAns',ans);show('prof',false);show('fin',false);start()}
+function over(){st='over';stopMusic();snd.over();const s=score|0;bank+=s;score=0;if(s>bestS){bestS=s;sv('brS',s)}if(t>bestT){bestT=t;sv('brT',t)}$('adv').style.display='none';
+$('res').innerHTML='😵 Ups, nyawamu habis!<br>Skor putaran ini: <b>'+s+'</b> · Total skor: <b>'+bank+'</b><br>📝 Soal dijawab: '+ans.length+'/10 · ⭐ Level selesai: '+Math.floor(ans.length/2)+'/5<br>🪙 Koin: '+stat.coins+' · 💨 Nyaris: '+stat.nm+' · 🔥 Combo terbaik: '+stat.combo+'<br><small>Jawabanmu aman tersimpan. Ayo lanjutkan!</small>';show('over',true)}
+function profile(){const cnt={};ans.forEach(a=>cnt[a.c]=(cnt[a.c]||0)+1);const top=Object.keys(cnt).filter(k=>CAT[k]).sort((a,b)=>cnt[b]-cnt[a]).slice(0,3),T=top.map(k=>CAT[k]);
+const tg=a=>a.map(x=>"<span class='tag'>"+x+'</span>').join(''),ab=[...new Set(T.slice(0,2).flatMap(c=>c.ab))],pr=[...new Set(T.flatMap((c,i)=>c.pr.slice(0,i?2:3)))];
+$('prof').innerHTML="<div class='pw'><h1 style='text-align:center'>🌟 My Future Profile</h1>"+
+"<div class='sec'><h3>A. Identitas Siswa</h3>Nama: <b>"+esc(stu.name)+'</b> · Kelas: <b>'+stu.kls+' SD</b> · Total skor permainan: <b>'+bank+'</b><br>📝 Soal dijawab '+ans.length+'/'+QB.length+' · 🪙 '+stat.coins+' koin · 💨 '+stat.nm+' nyaris · 🔥 combo '+stat.combo+'</div>'+
+"<div class='sec'><h3>B. Hasil Pengenalan Minat</h3>"+T.map((c,i)=>c.i+' '+c.n+' – '+Math.round(cnt[top[i]]/ans.length*100)+"%<div class='pbx'><i style='width:"+Math.round(cnt[top[i]]/ans.length*100)+"%'></i></div>").join('')+'</div>'+
+"<div class='sec'><h3>C. Kemampuan yang Ingin Dikembangkan</h3>"+tg(ab)+'</div>'+
+"<div class='sec'><h3>D. Rekomendasi Bidang untuk Dijelajahi</h3>"+tg(T.map(c=>c.i+' '+c.n))+'</div>'+
+"<div class='sec'><h3>E. Contoh Profesi yang Berkaitan</h3>"+tg(pr)+'</div>'+
+"<div class='sec'><h3>F. Cita-Cita Masa Depan</h3>"+(T[0]?'Kamu mungkin tertarik menjadi <b>'+T[0].pr[0]+'</b>'+(T[0].pr[1]?' atau <b>'+T[0].pr[1]+'</b>':'')+'. ':'')+'Teruslah belajar, mencoba hal baru, dan kembangkan kemampuanmu. Kamu hebat dan masa depanmu cerah! 🚀</div>'+
+"<p style='font-size:13px;opacity:.8'>Catatan: hasil ini hanya gambaran awal dari 10 pertanyaan dan bukan penentu bakat. Minatmu bisa berkembang, jadi terus jelajahi banyak bidang.</p>"+
+"<div class='np' style='text-align:center'><button class='b' id='pp'>🖨️ Cetak / Simpan Laporan</button> <button class='b g' id='pa'>🔄 Main Lagi</button></div></div>";$('pp').onclick=()=>window.print();$('pa').onclick=resetAll}
+// ===== BANK SOAL RESMI: Level 1 (10 soal) + placeholder Level 2–5 =====
+/* Format tiap soal: [teks, [[pilihan, kategori], ...]]. Kategori: seni, sains, teknologi, olahraga, sosial, pendidikan, lingkungan, atau null (tidak masuk kategori). Kategori di bawah adalah DRAFT, silakan ubah. */
+const L1=[
+['Apa kegiatan yang paling kamu sukai saat waktu luang?',[['Menggambar atau mewarnai','seni'],['Membaca buku','pendidikan'],['Bermain olahraga','olahraga'],['Bermain permainan','teknologi']]],
+['Kegiatan apa yang paling membuatmu bersemangat?',[['Membuat sesuatu','teknologi'],['Mencoba hal baru','sains'],['Membantu orang lain','sosial'],['Bermain bersama teman','sosial']]],
+['Jika memiliki waktu satu jam untuk melakukan sesuatu, kamu memilih...',[['Menggambar atau membuat kerajinan','seni'],['Membaca atau belajar','pendidikan'],['Berolahraga','olahraga'],['Bermain musik','seni']]],
+['Pelajaran apa yang paling kamu sukai di sekolah?',[['Matematika','teknologi'],['IPA','sains'],['Seni Budaya','seni'],['Bahasa Indonesia','pendidikan']]],
+['Saat bermain bersama teman, kamu lebih suka...',[['Menjadi pemimpin permainan','pendidikan'],['Membantu mengatur permainan','sosial'],['Menciptakan ide permainan baru','seni'],['Mengikuti permainan bersama',null]]],
+['Hal apa yang paling membuatmu merasa senang?',[['Berhasil menyelesaikan tantangan','teknologi'],['Mendapatkan pengetahuan baru','sains'],['Membuat orang lain bahagia','sosial'],['Menghasilkan karya sendiri','seni']]],
+['Jika menemukan sesuatu yang belum kamu ketahui, apa yang biasanya kamu lakukan?',[['Mencari tahu jawabannya','sains'],['Bertanya kepada orang lain','pendidikan'],['Mencoba sendiri','teknologi'],['Membiarkannya terlebih dahulu',null]]],
+['Kegiatan apa yang ingin kamu coba lebih sering?',[['Melukis atau menggambar','seni'],['Melakukan percobaan sederhana','sains'],['Menari atau bernyanyi','seni'],['Bermain olahraga','olahraga']]],
+['Kamu lebih nyaman melakukan kegiatan...',[['Sendiri',null],['Bersama satu teman','sosial'],['Dalam kelompok kecil','sosial'],['Bersama banyak teman','sosial']]],
+['Jika boleh memilih satu kegiatan untuk dilakukan setiap hari, kamu memilih...',[['Belajar hal baru','sains'],['Membuat karya kreatif','seni'],['Membantu orang lain','sosial'],['Melakukan aktivitas fisik','olahraga']]]];
+QB.length=0;L1.forEach(([q,o])=>QB.push({k12:q,k34:q,k56:q,o}));
+for(let l=2;l<=5;l++)for(let j=1;j<=2;j++){const q='[Level '+l+' – Soal '+j+': tulis pertanyaan di sini]';QB.push({k12:q,k34:q,k56:q,o:PC.map((c,k)=>['[Pilihan '+'ABCD'[k]+']',c])})}
+const LQ=[10,2,2,2,2];let s0=0;const ENDS=LQ.map(a=>s0+=a),TOT=()=>QB.length,lvOf=i=>ENDS.findIndex(e=>i<e),lvDone=n=>ENDS.filter(e=>e<=n).length;
+const PRAISE=['Wah, kamu punya banyak hal menarik untuk dieksplorasi!','Pilihan yang seru! Terima kasih sudah bercerita.','Keren! Kita makin kenal kamu nih!'];
+function adv(){const q=ans.length,d=lvDone(q),l=Math.min(5,d+1);$('lvn').textContent='⭐ Level '+l+'/5 · '+LV[l-1];$('qn').textContent='📝 Soal '+q+'/'+TOT();$('pb').firstChild.style.width=q/TOT()*100+'%';$('lvs').textContent=LV.map((_,i)=>i<d?'✅':i===d?'▶️':'🔒').join(' ')}
+function advTick(dt){if(st!=='play')return;if(showLv){showLv=false;const l=Math.min(5,lvDone(ans.length)+1);warn('⭐ LEVEL '+l+': '+LV[l-1])}stat.combo=Math.max(stat.combo,combo);
+const on=its.some(i=>i.type==='quest'&&!i.dead);if(wasOn&&!on)qT=3;wasOn=on;if(!on){qT-=dt;if(qT<=0&&ans.length<TOT()&&!asking){addI('quest',[-1,0,1][rnd()*3|0]*2,-110);its[its.length-1].m.add(qSprite());wasOn=true}}
+ahud-=dt;if(ahud<=0){ahud=.3;adv()}}
+function openQ(){if(asking||ans.length>=TOT())return;asking=true;st='quiz';const i=ans.length,Q=QB[i],k=stu.kls<=2?Q.k12:stu.kls<=4?Q.k34:Q.k56,l=lvOf(i);$('qlv').textContent='Level '+(l+1)+' · '+LV[l]+' · Soal '+(i-(ENDS[l]-LQ[l])+1)+'/'+LQ[l];$('qt').textContent=k;const o=$('qo');o.innerHTML='';Q.o.forEach((x,j)=>{const b=document.createElement('button');b.className='b qb';b.textContent=x[0];b.onclick=()=>pick(i,j);o.appendChild(b)});show('qm',true);snd.pw()}
+function pick(i,j){if(!asking||ans.length!==i)return;asking=false;ans[i]={c:QB[i].o[j][1],o:j};ssv('brAns',ans);$('qo').innerHTML="<div style='font-size:24px'>✅ "+PRAISE[rnd()*3|0]+'</div>';tn(1500,.2,'sine',.1);
+setTimeout(()=>{if(st!=='quiz')return;show('qm',false);adv();const n=ans.length;if(n>=TOT())finish();else if(ENDS.includes(n))lvUp(ENDS.indexOf(n)+1);else{st='play';inv=Math.max(inv,1.5)}},1300)}
+function lvUp(n){st='lvl';snd.lvl();$('lvb').innerHTML="<div style='font-size:60px'>🎉</div><h1>Selamat! Level "+n+" selesai!</h1><p style='font-size:20px'>"+(n===1?'Ini baru gambaran awal tentang dirimu, bukan jawaban pasti. Yuk kenali dirimu lebih jauh!<br>':'')+'Selanjutnya: Level '+(n+1)+' – '+LV[n]+'</p>';show('lvb',true);setTimeout(()=>{if(st!=='lvl')return;show('lvb',false);st='play';inv=Math.max(inv,1.5);showLv=true},3200)}
+function over(){st='over';stopMusic();snd.over();const s=score|0;bank+=s;score=0;if(s>bestS){bestS=s;sv('brS',s)}if(t>bestT){bestT=t;sv('brT',t)}$('adv').style.display='none';
+$('res').innerHTML='😵 Ups, nyawamu habis!<br>Skor putaran ini: <b>'+s+'</b> · Total skor: <b>'+bank+'</b><br>📝 Soal dijawab: '+ans.length+'/'+TOT()+' · ⭐ Level selesai: '+lvDone(ans.length)+'/5<br>🪙 Koin: '+stat.coins+' · 💨 Nyaris: '+stat.nm+' · 🔥 Combo terbaik: '+stat.combo+'<br><small>Jawabanmu aman tersimpan. Ayo lanjutkan!</small>';show('over',true)}
+// ===== SOAL LEVEL 2–5 (5 soal per level, respon per pilihan) =====
+/* Format: [judul soal, [[pilihan, kategori, respon], ...]] */
+const L25=[
+['Kegiatan ekstrakurikuler yang ingin diikuti',[['Klub sains','sains','Wah, kamu suka mencari tahu hal baru! Teruslah mengeksplorasi rasa ingin tahumu!'],['Klub seni','seni','Keren! Kamu punya ketertarikan pada dunia seni. Jangan takut untuk terus berkarya!'],['Klub olahraga','olahraga','Semangat! Kamu tertarik dengan aktivitas yang penuh energi. Terus kembangkan semangatmu!'],['Klub musik','seni','Hebat! Musik bisa menjadi cara untuk mengekspresikan dirimu. Terus temukan iramamu!'],['Klub bahasa','pendidikan','Menarik! Kamu suka belajar dan berkomunikasi. Teruslah berani menyampaikan ide!']]],
+['Proyek yang ingin dibuat',[['Percobaan','sains','Wah, kamu suka bereksperimen! Siapa tahu rasa ingin tahumu membawamu pada penemuan menarik!'],['Karya seni','seni','Kreativitasmu punya banyak kemungkinan. Terus ciptakan sesuatu yang unik!'],['Teknologi','teknologi','Kamu tertarik menciptakan sesuatu yang baru. Terus kembangkan ide hebatmu!'],['Buku cerita','pendidikan','Imajinasi adalah kekuatan yang luar biasa. Teruslah membuat cerita!'],['Kegiatan sosial','sosial','Kepedulianmu sangat berarti. Hal kecil yang kamu lakukan bisa membawa manfaat!']]],
+['Topik yang membuat penasaran',[['Hewan dan tumbuhan','lingkungan','Kamu tertarik dengan kehidupan alam. Terus kenali keajaiban makhluk hidup!'],['Luar angkasa','sains','Wah, rasa penasaranmu luas sekali! Jangan berhenti menjelajahi alam semesta!'],['Teknologi','teknologi','Kamu tertarik dengan dunia teknologi. Terus ikuti perkembangan dan ciptakan ide baru!'],['Sejarah dan budaya','pendidikan','Kamu suka mengenal cerita masa lalu. Pengetahuanmu bisa membantumu memahami dunia!'],['Kesehatan','olahraga','Kamu tertarik memahami tubuh manusia. Terus belajar tentang cara menjaga kesehatan!']]],
+['Tempat yang ingin dikunjungi',[['Museum sains','sains','Penjelajah kecil! Banyak pengetahuan menarik menunggumu di sana!'],['Kebun binatang atau kebun raya','lingkungan','Kamu suka mengenal alam. Terus tumbuhkan rasa pedulimu terhadap lingkungan!'],['Galeri seni','seni','Dunia seni penuh inspirasi. Siapa tahu kamu menemukan ide karya berikutnya!'],['Perpustakaan','pendidikan','Buku adalah jendela pengetahuan. Teruslah membaca dan menemukan hal baru!'],['Stadion olahraga','olahraga','Semangatmu luar biasa! Terus kenali berbagai aktivitas olahraga!']]],
+['Kegiatan yang ingin dipelajari',[['Robot','teknologi','Wah, calon pencipta teknologi! Terus asah rasa ingin tahumu!'],['Desain','seni','Ide kreatifmu layak dikembangkan. Terus berlatih dan berkarya!'],['Berbicara di depan umum','pendidikan','Berani menyampaikan pendapat adalah kemampuan hebat. Terus latih kepercayaan dirimu!'],['Penelitian','sains','Kamu suka mencari jawaban. Teruslah berpikir kritis dan mencoba!'],['Musik','seni','Teruslah berlatih dan temukan cara terbaik untuk mengekspresikan dirimu!']]],
+['Peran dalam tugas kelompok',[['Mencari ide','seni','Kamu suka menyumbangkan gagasan. Terus kembangkan kreativitasmu!'],['Mengumpulkan informasi','sains','Kamu teliti dan suka mencari pengetahuan. Pertahankan rasa ingin tahumu!'],['Menjelaskan hasil','pendidikan','Kemampuan berkomunikasi itu berharga. Terus berlatih menyampaikan ide!'],['Mengatur tugas','sosial','Kamu senang mengatur kegiatan. Terus kembangkan tanggung jawabmu!'],['Membantu pekerjaan','sosial','Sikap suka membantu adalah hal yang hebat. Terus jadilah teman yang suportif!']]],
+['Kemampuan yang diandalkan',[['Imajinasi','seni','Imajinasi membuat banyak hal menjadi mungkin. Jangan berhenti berkreasi!'],['Berpikir logis','teknologi','Kamu suka mencari solusi. Terus latih kemampuan berpikirmu!'],['Berbicara','pendidikan','Kamu senang berbagi pemikiran. Terus tingkatkan kemampuan komunikasimu!'],['Ketelitian','sains','Ketelitian membantumu menghasilkan pekerjaan yang baik. Terus pertahankan kebiasaan positifmu!'],['Kerja sama','sosial','Kamu memahami pentingnya kebersamaan. Bersama-sama, banyak hal bisa dicapai!']]],
+['Hal yang sering mendapat pujian',[['Kreatif','seni','Kreativitasmu patut dikembangkan. Terus hasilkan ide-ide menarik!'],['Cepat memahami','sains','Kamu punya semangat belajar yang baik. Terus tantang dirimu dengan pengetahuan baru!'],['Pandai menjelaskan','pendidikan','Kemampuan berbagi ilmu sangat berharga. Teruslah membantu orang lain memahami sesuatu!'],['Rajin dan bertanggung jawab',null,'Konsistensi adalah modal penting untuk berkembang. Pertahankan semangatmu!'],['Suka membantu','sosial','Kepedulianmu membawa kebaikan. Terus sebarkan energi positif!']]],
+['Cara belajar yang disukai',[['Gambar atau video','seni','Kamu senang belajar melalui visual. Temukan cara belajar yang paling membuatmu nyaman!'],['Membaca','pendidikan','Kamu suka menggali informasi. Terus perluas wawasanmu!'],['Mendengarkan','pendidikan','Kamu suka menyimak penjelasan. Terus gunakan rasa ingin tahumu untuk belajar!'],['Praktik','teknologi','Kamu senang belajar sambil mencoba. Pengalaman bisa menjadi guru yang hebat!'],['Bersama teman','sosial','Belajar bersama bisa membuka banyak ide baru. Terus tumbuh bersama teman-temanmu!']]],
+['Menghadapi masalah baru',[['Cara kreatif','seni','Kamu berani mencari jalan yang berbeda. Terus eksplorasi ide-ide baru!'],['Menganalisis','sains','Kamu suka memahami masalah sebelum bertindak. Pertahankan kebiasaan berpikir kritis!'],['Berdiskusi','sosial','Kamu terbuka terhadap pendapat orang lain. Itu adalah kemampuan yang berharga!'],['Bertahap',null,'Kamu memahami bahwa proses membutuhkan waktu. Terus maju selangkah demi selangkah!'],['Mencari contoh','pendidikan','Kamu suka belajar dari pengalaman. Jadikan setiap pengetahuan sebagai bekal baru!']]],
+['Pekerjaan yang ingin dicoba',[['Dokter atau dokter hewan','olahraga','Kamu tertarik dengan dunia kesehatan. Terus pelajari bagaimana cara membantu makhluk hidup!'],['Guru','pendidikan','Kamu tertarik berbagi ilmu. Siapa tahu suatu hari kamu menginspirasi banyak orang!'],['Ilmuwan','sains','Rasa ingin tahumu bisa membawamu pada banyak penemuan. Teruslah bertanya!'],['Arsitek','teknologi','Kamu tertarik merancang sesuatu. Terus kembangkan ide dan kreativitasmu!'],['Seniman','seni','Dunia seni memiliki banyak kemungkinan. Terus tunjukkan kreativitasmu!']]],
+['Kegiatan pekerjaan yang menarik',[['Menemukan obat','sains','Kamu tertarik mencari solusi untuk kesehatan. Terus kembangkan kepedulian dan pengetahuanmu!'],['Merancang bangunan','teknologi','Kamu suka membangun ide menjadi sesuatu yang nyata. Terus berkreasi!'],['Mengajar','pendidikan','Berbagi ilmu adalah hal yang luar biasa. Teruslah senang belajar dan berbagi!'],['Menciptakan teknologi','teknologi','Ide-ide baru bisa mengubah banyak hal. Terus eksplorasi dunia teknologi!'],['Membuat karya','seni','Karyamu bisa menyampaikan banyak hal. Teruslah berkarya!']]],
+['Membantu lingkungan sekitar',[['Kesehatan masyarakat','olahraga','Kamu peduli terhadap kesehatan orang lain. Kepedulianmu bisa membawa manfaat!'],['Teknologi','teknologi','Kamu ingin menciptakan solusi. Terus kembangkan kemampuan berpikirmu!'],['Mengajar anak-anak','pendidikan','Kamu senang membantu orang belajar. Terus bagikan pengetahuanmu!'],['Menjaga alam','lingkungan','Bumi membutuhkan orang-orang yang peduli. Terus jaga lingkungan!'],['Kampanye kreatif','seni','Kamu ingin menyampaikan pesan positif. Gunakan kreativitasmu untuk menginspirasi!']]],
+['Bidang pekerjaan yang ingin dipelajari',[['Kesehatan','olahraga','Dunia kesehatan penuh pengetahuan yang bermanfaat. Terus pelajari hal-hal baru!'],['Pendidikan','pendidikan','Pendidikan membuka banyak kesempatan. Terus tumbuhkan semangat belajarmu!'],['Teknologi','teknologi','Teknologi terus berkembang. Siapkan dirimu untuk menjelajahi banyak kemungkinan!'],['Seni','seni','Kreativitas bisa menjadi kekuatanmu. Terus temukan hal yang ingin kamu ciptakan!'],['Lingkungan','lingkungan','Menjaga alam adalah tanggung jawab bersama. Terus kembangkan kepedulianmu!']]],
+['Profesional yang ingin ditemui',[['Dokter atau peneliti','sains','Banyak hal menarik bisa kamu pelajari dari dunia kesehatan dan penelitian!'],['Guru atau penulis','pendidikan','Cerita dan ilmu dapat menginspirasi banyak orang. Teruslah belajar!'],['Insinyur atau programmer','teknologi','Dunia teknologi penuh tantangan menarik. Jangan takut mencoba!'],['Desainer atau musisi','seni','Kreativitas memiliki banyak bentuk. Terus kembangkan kemampuanmu!'],['Pengusaha atau pemimpin','sosial','Ide dan keberanian mencoba bisa membuka peluang baru. Terus belajar memimpin!']]],
+['Hal yang ingin dicapai ketika dewasa',[['Ahli di bidang yang disukai',null,'Punya tujuan adalah langkah awal yang baik. Terus perdalam hal yang kamu sukai!'],['Menciptakan sesuatu','teknologi','Dunia membutuhkan ide-ide baru. Terus berani berinovasi!'],['Membantu banyak orang','sosial','Keinginanmu membawa manfaat adalah hal yang hebat. Terus tumbuhkan kepedulian!'],['Memiliki usaha',null,'Kamu tertarik membangun sesuatu sendiri. Terus belajar dan kembangkan ide!'],['Berkontribusi untuk masyarakat','sosial','Kamu ingin membawa perubahan positif. Mulailah dari tindakan kecil!']]],
+['Kemampuan yang ingin dikembangkan',[['Kreativitas','seni','Teruslah berimajinasi dan berani mencoba ide baru!'],['Berpikir kritis','sains','Setiap masalah punya kesempatan untuk dipelajari. Terus asah kemampuanmu!'],['Komunikasi','pendidikan','Suaramu dan idemu berharga. Terus belajar menyampaikannya dengan baik!'],['Kepemimpinan','sosial','Pemimpin hebat juga mau mendengarkan. Terus kembangkan tanggung jawabmu!'],['Teknologi','teknologi','Kemampuan teknologi bisa membuka banyak peluang. Terus belajar!']]],
+['Cara meningkatkan kemampuan',[['Membaca dan belajar','pendidikan','Setiap pengetahuan baru adalah bekal untuk masa depan. Terus semangat belajar!'],['Mengikuti pelatihan',null,'Berani mencoba pengalaman baru adalah langkah yang baik!'],['Berlatih rutin',null,'Kemampuan berkembang melalui latihan. Sedikit demi sedikit, kamu pasti belajar banyak!'],['Meminta bimbingan','sosial','Tidak apa-apa meminta bantuan. Belajar bersama bisa membuatmu semakin berkembang!'],['Mencoba pengalaman baru','sains','Jangan takut menjelajahi hal baru. Setiap pengalaman punya pelajaran!']]],
+['Menghadapi kegagalan',[['Mencoba kembali',null,'Tidak semua hal langsung berhasil. Terus belajar dan jangan mudah menyerah!'],['Belajar dari kesalahan',null,'Kesalahan bisa menjadi pelajaran berharga. Kamu sedang berkembang!'],['Meminta bantuan','sosial','Meminta bantuan bukan kelemahan. Itu salah satu cara untuk belajar!'],['Mencari pengetahuan baru','sains','Semangat mencari tahu adalah modal yang baik. Terus perluas wawasanmu!'],['Menyusun rencana',null,'Rencana yang baik membantumu melangkah lebih terarah. Terus berusaha!']]],
+['Masa depan yang ingin dibangun',[['Ahli dan berprestasi',null,'Terus kembangkan kemampuanmu. Prestasi yang baik dimulai dari proses belajar!'],['Bermanfaat bagi orang lain','sosial','Masa depan yang bermakna juga dibangun dengan kepedulian!'],['Menghasilkan karya','seni','Siapa tahu ide-ide hebatmu bisa menjadi sesuatu yang bermanfaat!'],['Menjadi pemimpin','sosial','Terus belajar bertanggung jawab dan menghargai orang lain!'],['Hidup seimbang dan berkembang','olahraga','Teruslah belajar, menjaga diri, dan menikmati setiap proses perkembanganmu!']]]];
+QB.length=10;L25.forEach(([q,o])=>QB.push({k12:q,k34:q,k56:q,o}));
+LQ.length=0;LQ.push(10,5,5,5,5);ENDS.length=0;s0=0;LQ.forEach(a=>ENDS.push(s0+=a));
+function pick(i,j){if(!asking||ans.length!==i)return;asking=false;const op=QB[i].o[j];ans[i]={c:op[1],o:j};ssv('brAns',ans);
+$('qo').innerHTML="<div style='font-size:22px;max-width:520px;margin:0 auto 14px'>✅ "+esc(op[2]||PRAISE[rnd()*3|0])+"</div><button class='b' id='qnx'>Lanjut ▶</button>";tn(1500,.2,'sine',.1);
+$('qnx').onclick=()=>{if(st!=='quiz')return;show('qm',false);adv();const n=ans.length;if(n>=TOT())finish();else if(ENDS.includes(n))lvUp(ENDS.indexOf(n)+1);else{st='play';inv=Math.max(inv,1.5)}}}
+// ---------- render loop ----------
+let last=performance.now();
+function loop(n){requestAnimationFrame(loop);const dt=Math.min((n-last)/1000,.05);last=n;T+=dt;
+if(st==='play')upd(dt);else if(st==='menu')scroll(7*dt);
+else if(st==='count'){cd-=dt;const N=Math.ceil(cd);if(N!==lastN){lastN=N;snd.tick(N<=0)}$('cd').textContent=cd>0?N:'GO!';if(cd<=-.5){$('cd').style.display='none';st='play';hud();startMusic()}}
+if(st==='play'||st==='count'||st==='menu')ph+=dt*(st==='play'?speed:9)*.85;
+if(t%420<60)sky(Math.min(t%420/60,1),(t%420)*2);theme(dt);for(const c of clouds){c.position.x+=dt*2;if(c.position.x>200)c.position.x=-200;c.visible=thi!==2}
+if(ff.material.opacity>0){const a=fat.array;for(let i=0;i<70;i++){const b=fb[i];a[i*3]=b[0]+Math.sin(T+b[3])*.8;a[i*3+1]=b[1]+Math.cos(T*1.3+b[3])*.4;a[i*3+2]=b[2]}fat.needsUpdate=true}
+const sl=slide>0&&py<.3,gr=py===0,sw=Math.sin(ph)*(gr?.9:.3);
+pl.position.set(px,.15+py-(sl?.15:0),0);pl.rotation.x=sl?-1.2:0;pl.rotation.z=(lane*2-px)*.12;
+parts[0].rotation.x=sw+(gr?0:-2.4);parts[1].rotation.x=-sw+(gr?0:-2.4);parts[2].rotation.x=-sw;parts[3].rotation.x=sw;
+pl.visible=inv>0?Math.sin(T*40)>0:true;updCops(dt);alertTick(dt);advTick(dt);bub.visible=pw.shield>0||turbo();bub.material.color.set(turbo()?0xffcc00:0x40e0ff);bub.position.set(px,1+py,0);
+shake=Math.max(0,shake-dt);const sh=shake*.5;cam.fov=lp(cam.fov,65+(turbo()?14:0)+(t>=120?6:0),.1);cam.updateProjectionMatrix();
+cam.position.set(px*.5+(rnd()-.5)*sh,3.9+py*.3+(rnd()-.5)*sh,7);cam.lookAt(px*.3,1,-8);R.render(sc,cam)}
+build();menuUI();requestAnimationFrame(loop);
+</script></body></html>
